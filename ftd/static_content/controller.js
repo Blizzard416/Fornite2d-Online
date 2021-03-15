@@ -7,6 +7,7 @@ function setupGame(){
 
 	// https://javascript.info/keyboard-events
 	document.addEventListener('keydown', moveByKey);
+        document.addEventListener('keyup', moveByKeyUP);
 }
 function startGame(){
 	interval=setInterval(function(){ stage.step(); stage.draw(); },100);
@@ -18,14 +19,17 @@ function pauseGame(){
 function moveByKey(event){
 	var key = event.key;
 	var moveMap = { 
-		'a': new Pair(-5,0),
-		's': new Pair(0,5),
-		'd': new Pair(5,0),
-		'w': new Pair(0,-5)
+		'a': new Pair(-15,0),
+		's': new Pair(0,15),
+		'd': new Pair(15,0),
+		'w': new Pair(0,-15)
 	};
 	if(key in moveMap){
 		stage.player.velocity=moveMap[key];
 	}
+}
+function moveByKeyUP(){
+	stage.player.velocity=new Pair(0,0);
 }
 
 function login(){
@@ -56,6 +60,41 @@ function login(){
         });
 }
 
+function register(){
+	credentials =  { 
+		"username": $("#username").val(), 
+		"password": $("#password").val() 
+	};
+
+        $.ajax({
+                method: "POST",
+                url: "/api/auth/login",
+                data: JSON.stringify({}),
+		headers: { "Authorization": "Basic " + btoa(credentials.username + ":" + credentials.password) },
+                processData:false,
+                contentType: "application/json; charset=utf-8",
+                dataType:"json"
+        }).done(function(data, text_status, jqXHR){
+                console.log(jqXHR.status+" "+text_status+JSON.stringify(data));
+
+        	$("#ui_login").hide();
+        	$("#ui_play").show();
+
+        }).fail(function(err){
+                console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
+        });
+}
+
+function toRegister() {
+        $("#ui_login").hide();
+        $("#ui_register").show();
+}
+
+function toLogin() {
+        $("#ui_login").show();
+        $("#ui_register").hide();
+}
+
 // Using the /api/auth/test route, must send authorization header
 function test(){
         $.ajax({
@@ -74,7 +113,11 @@ function test(){
 $(function(){
         // Setup all events here and display the appropriate UI
         $("#loginSubmit").on('click',function(){ login(); });
+        $("#registerSubmit").on('click',function(){ toRegister(); });
+        $("#back").on('click',function(){ toLogin(); });
+        $("#register").on('click',function(){ register(); });
         $("#ui_login").show();
         $("#ui_play").hide();
+        $("#ui_register").hide();
 });
 

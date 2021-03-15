@@ -1,4 +1,4 @@
-function randint(n){ return Math.round(Math.random()*n); }
+function randint(min, max){ return Math.round(Math.random()*(max-min)+min); }
 function rand(n){ return Math.random()*n; }
 
 class Stage {
@@ -14,28 +14,44 @@ class Stage {
 
 		// Add the player to the center of the stage
 		var velocity = new Pair(0,0);
-		var radius = 20;
-		var colour= 'rgba(0,0,0,1)';
+		var radius = 10;
+		var colour= 'rgba(124,252,0,1)';
 		var position = new Pair(Math.floor(this.width/2), Math.floor(this.height/2));
-		this.addPlayer(new Player(this, position, velocity, colour, radius));
-	
-		// Add in some Balls
-		var total=100;
+		this.addPlayer(new Player(this, position, velocity, colour, radius, false));
+		
+		var total=40;
 		while(total>0){
 			var x=Math.floor((Math.random()*this.width)); 
 			var y=Math.floor((Math.random()*this.height)); 
-			if(this.getActor(x,y)===null){
-				var velocity = new Pair(rand(20), rand(20));
-				var red=randint(255), green=randint(255), blue=randint(255);
-				var radius = randint(20);
+			if(this.getActor(x,y,null)===null){
+				var red=randint(0, 255), green=randint(0, 255), blue=randint(0, 255);
 				var alpha = Math.random();
+				var radius = randint(30,40);
 				var colour= 'rgba('+red+','+green+','+blue+','+alpha+')';
 				var position = new Pair(x,y);
-				var b = new Ball(this, position, velocity, colour, radius);
+				var b = new Obstacles(this, position, colour, radius, true);
 				this.addActor(b);
 				total--;
 			}
 		}
+		
+		var total=20;
+		while(total>0){
+			var x=Math.floor((Math.random()*this.width)); 
+			var y=Math.floor((Math.random()*this.height)); 
+			if(this.getActor(x,y)===null){
+				var radius = 10;
+				var velocity = new Pair(rand(20), rand(20));
+				var alpha = Math.random();
+				var colour= 'rgba(255,0,0,1)';
+				var position = new Pair(x,y);
+				var b = new Ball(this, position, velocity, colour, radius, false);
+				this.addActor(b);
+				total--;
+			}
+		}
+		
+		
 	}
 
 	addPlayer(player){
@@ -76,15 +92,26 @@ class Stage {
 	}
 
 	// return the first actor at coordinates (x,y) return null if there is no such actor
-	getActor(x, y){
+	getActor(x, y, cur){
 		for(var i=0;i<this.actors.length;i++){
-			if(this.actors[i].x==x && this.actors[i].y==y){
-				return this.actors[i];
+			var length;
+			if (this.actors[i] === cur)
+				continue;
+			if (this.actors[i].isOb) {
+				length = this.actors[i].length;
+				if(x<this.actors[i].x+length && x>this.actors[i].x && y<this.actors[i].y+length&& y>this.actors[i].y){
+					return this.actors[i];
+				}
+			} else {
+				length = this.actors[i].radius;
+				if(x<this.actors[i].x+length && x>this.actors[i].x-length && y<this.actors[i].y+length&& y>this.actors[i].y-length){
+					return this.actors[i];
+				}
 			}
 		}
 		return null;
 	}
-} // End Class Stage
+} // End Class Stages
 
 class Pair {
 	constructor(x,y){
@@ -97,13 +124,38 @@ class Pair {
 
 	normalize(){
 		var magnitude=Math.sqrt(this.x*this.x+this.y*this.y);
-		this.x=this.x/magnitude;
-		this.y=this.y/magnitude;
+		this.x=this.x/magnitude*3;
+		this.y=this.y/magnitude*3;
+	}
+}
+
+class Obstacles {
+	constructor(stage, position, colour, length, isOb){
+		this.stage = stage;
+		this.position=position;
+		this.intPosition();
+		this.colour = colour;
+		this.length = length;
+		this.isOb = isOb;
+	}
+
+	intPosition(){
+		this.x = Math.round(this.position.x);
+		this.y = Math.round(this.position.y);
+	}
+
+	step() {
+		this.intPosition();
+	}
+
+	draw(context){
+		context.fillStyle = this.colour;
+   		context.fillRect(this.x, this.y, this.length,this.length);  
 	}
 }
 
 class Ball {
-	constructor(stage, position, velocity, colour, radius){
+	constructor(stage, position, velocity, colour, radius, isOb){
 		this.stage = stage;
 		this.position=position;
 		this.intPosition(); // this.x, this.y are int version of this.position
@@ -111,6 +163,7 @@ class Ball {
 		this.velocity=velocity;
 		this.colour = colour;
 		this.radius = radius;
+		this.isOb = isOb;
 	}
 	
 	headTo(position){
@@ -124,25 +177,13 @@ class Ball {
 	}
 
 	step(){
+		this.headTo(this.stage.player.position);
 		this.position.x=this.position.x+this.velocity.x;
 		this.position.y=this.position.y+this.velocity.y;
-			
-		// bounce off the walls
-		if(this.position.x<0){
-			this.position.x=0;
-			this.velocity.x=Math.abs(this.velocity.x);
-		}
-		if(this.position.x>this.stage.width){
-			this.position.x=this.stage.width;
-			this.velocity.x=-Math.abs(this.velocity.x);
-		}
-		if(this.position.y<0){
-			this.position.y=0;
-			this.velocity.y=Math.abs(this.velocity.y);
-		}
-		if(this.position.y>this.stage.height){
-			this.position.y=this.stage.height;
-			this.velocity.y=-Math.abs(this.velocity.y);
+
+		if(this.stage.getActor(this.position.x, this.position.y, this)!==null){
+			this.position.x-=this.velocity.x;
+			this.position.y-=this.velocity.y;
 		}
 		this.intPosition();
 	}
@@ -160,13 +201,36 @@ class Ball {
 }
 
 class Player extends Ball {
+	step(){
+		this.position.x=this.position.x+this.velocity.x;
+		this.position.y=this.position.y+this.velocity.y;
+
+		if(this.position.x-this.radius<0){
+			this.position.x=this.radius;
+		}
+		if(this.position.x+this.radius>this.stage.width){
+			this.position.x=this.stage.width-this.radius;
+		}
+		if(this.position.y-this.radius<0){
+			this.position.y=this.radius;
+		}
+		if(this.position.y+this.radius>this.stage.height){
+			this.position.y=this.stage.height-this.radius;
+		}
+		if(this.stage.getActor(this.position.x, this.position.y, this)!==null){
+			this.position.x-=this.velocity.x;
+			this.position.y-=this.velocity.y;
+		}
+
+		this.intPosition();
+	}
+
 	draw(context){
 		context.fillStyle = this.colour;
-   		context.fillRect(this.x, this.y, this.radius,this.radius);
-		/**
+   		// context.fillRect(this.x, this.y, this.radius,this.radius);
 		context.beginPath(); 
 		context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false); 
-		context.stroke();   
-		**/
+		context.fill();    
+		
 	}
 }
