@@ -30,6 +30,45 @@ app.post('/api/test', function (req, res) {
 	res.json({"message":"got here"}); 
 });
 
+app.post('/api/register/:username/', function (req, res) {
+		var username = req.params.username;
+		console.log(JSON.stringify(req.body));
+
+		if (!"password" in req.body || !"repassword" in req.body) {
+			res.status(400);
+			res.json({"error":'Missing password or confirm password'});
+			return;
+		}
+		if(req.body.password!=req.body.repassword){
+				res.status(400);
+				res.json({"error":'Password and confirm password are not identical'});
+				return;
+		}
+	// Need work
+	let sql = 'INSERT INTO counter(counterName, counterValue) VALUES ($1,$2);';
+		pool.query(sql, [counterName, value], (err, pgRes) => {
+		if(err && err.code==23505){ // pg duplicate key error
+					res.status(409);
+					res.json({"error":`${counterName} is already in database`});
+					return;
+		}
+		if (err) {
+			res.status(500);
+			res.json({"error":err.message});
+			return;
+		} 
+			if(pgRes.rowCount == 1){
+			res.status(200);
+				res.json({[counterName]: value});
+			return;
+			} else {
+			res.status(500);
+			res.json({"error":`couldn't add ${counterName}`});
+			return;
+			}
+	});
+});
+
 /** 
  * This is middleware to restrict access to subroutes of /api/auth/ 
  * To get past this middleware, all requests should be sent with appropriate

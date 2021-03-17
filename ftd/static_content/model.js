@@ -86,9 +86,12 @@ class Stage {
 	draw(){
 		var context = this.canvas.getContext('2d');
 		context.clearRect(0, 0, this.width, this.height);
+		context.restore();
 		for(var i=0;i<this.actors.length;i++){
 			this.actors[i].draw(context);
 		}
+		context.save();
+		context.translate(this.player.position.x - context.width / 2, this.player.position.y - context.height / 2);
 	}
 
 	// return the first actor at coordinates (x,y) return null if there is no such actor
@@ -124,8 +127,8 @@ class Pair {
 
 	normalize(){
 		var magnitude=Math.sqrt(this.x*this.x+this.y*this.y);
-		this.x=this.x/magnitude*3;
-		this.y=this.y/magnitude*3;
+		this.x=this.x/magnitude;
+		this.y=this.y/magnitude;
 	}
 }
 
@@ -170,6 +173,8 @@ class Ball {
 		this.velocity.x=(position.x-this.position.x);
 		this.velocity.y=(position.y-this.position.y);
 		this.velocity.normalize();
+		this.velocity.x*=3;
+		this.velocity.y*=3;
 	}
 
 	toString(){
@@ -230,7 +235,6 @@ class Player extends Ball {
    		// context.fillRect(this.x, this.y, this.radius,this.radius);
 		context.beginPath(); 
 		context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false); 
-		context.fill();    
-		
+		context.fill();
 	}
 }

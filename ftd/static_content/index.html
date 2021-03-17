@@ -14,6 +14,16 @@
 	</head>
 	<body bgcolor="ffffff">
 		<h1>f0rt9it32d</h1>
+		<div id="ui_nav">
+			<ul>
+                <!-- Display navigation-->
+                <li> <input type="submit" id="playSubmit" value="Play"> </li>
+                <li> <input type="submit" id="instructionsSubmit" value="Instructions"> </li>
+                <li> <input type="submit" id="statsSubmit" value="Stats"> </li>
+                <li> <input type="submit" id="profileSubmit" value="Profile"> </li>
+                <li> <input type="submit" id="logoutSubmit" value="Logout"> </li>
+            </ul>
+		</div>
 		<div id="ui_login">
 			<div>
 				<legend>Login</legend>
@@ -31,9 +41,9 @@
 				<legend>Register</legend>
 					<table>
 						<!-- Trick below to re-fill the user form field -->
-						<tr><th><label for="r-username">User</label></th><td><input type="text" id="r-username" placeholder="User Name" /></td></tr>
-						<tr><th><label for="r-password">Password</label></th><td> <input type="password" id="r-password" placeholder="Password" /></td></tr>
-						<tr><th><label for="repassword">Comfirm Password</label></th><td> <input type="repassword" id="password" placeholder="Confirm Password" /></td></tr>
+						<tr><th><label for="r-username">User</label></th><td><input type="text" id="r-username" placeholder="User Name" required/></td></tr>
+						<tr><th><label for="r-password">Password</label></th><td> <input type="password" id="r-password" placeholder="Password" required/></td></tr>
+						<tr><th><label for="repassword">Comfirm Password</label></th><td> <input type="password" id="repassword" placeholder="Confirm Password" required/></td></tr>
 						<tr><th>&nbsp;</th><td><input type="submit" id="register" value="Register"></td></tr>
 						<tr><th>&nbsp;</th><td><input type="submit" id="back" value="Back"></td></tr>
 					</table>

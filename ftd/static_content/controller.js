@@ -8,6 +8,7 @@ function setupGame(){
 	// https://javascript.info/keyboard-events
 	document.addEventListener('keydown', moveByKey);
         document.addEventListener('keyup', moveByKeyUP);
+        document.addEventListener('mousemove', mouseFollow);
 }
 function startGame(){
 	interval=setInterval(function(){ stage.step(); stage.draw(); },100);
@@ -31,7 +32,9 @@ function moveByKey(event){
 function moveByKeyUP(){
 	stage.player.velocity=new Pair(0,0);
 }
-
+function mouseFollow(event){
+        
+}
 function login(){
 	credentials =  { 
 		"username": $("#username").val(), 
@@ -51,7 +54,9 @@ function login(){
 
         	$("#ui_login").hide();
         	$("#ui_play").show();
-
+                $("#ui_nav").show();
+                document.getElementById('username').value='';
+                document.getElementById('password').value='';
 		setupGame();
 		startGame();
 
@@ -61,28 +66,20 @@ function login(){
 }
 
 function register(){
-	credentials =  { 
-		"username": $("#username").val(), 
-		"password": $("#password").val() 
-	};
-
-        $.ajax({
-                method: "POST",
-                url: "/api/auth/login",
-                data: JSON.stringify({}),
-		headers: { "Authorization": "Basic " + btoa(credentials.username + ":" + credentials.password) },
-                processData:false,
-                contentType: "application/json; charset=utf-8",
-                dataType:"json"
-        }).done(function(data, text_status, jqXHR){
-                console.log(jqXHR.status+" "+text_status+JSON.stringify(data));
-
-        	$("#ui_login").hide();
-        	$("#ui_play").show();
-
-        }).fail(function(err){
-                console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
-        });
+        $.ajax({ 
+		method: "POST", 
+		url: "/api/register/"+$("#r-username").val(),
+		data: JSON.stringify({"password": $("r-password").val(), "repassword": $("#repassword").val()}),
+		processData:false, 
+		contentType: "application/json; charset=utf-8",
+		dataType:"json"
+	}).done(function(data, text_status, jqXHR){
+		console.log(jqXHR.status+" "+text_status+JSON.stringify(data));
+		$("#ui_login").show();
+                $("#ui_register").hide();
+	}).fail(function(err){
+		console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
+	});
 }
 
 function toRegister() {
@@ -93,6 +90,12 @@ function toRegister() {
 function toLogin() {
         $("#ui_login").show();
         $("#ui_register").hide();
+}
+
+function logout() {
+        $("#ui_play").hide();
+        $("#ui_nav").hide();
+        $("#ui_login").show();
 }
 
 // Using the /api/auth/test route, must send authorization header
@@ -116,8 +119,10 @@ $(function(){
         $("#registerSubmit").on('click',function(){ toRegister(); });
         $("#back").on('click',function(){ toLogin(); });
         $("#register").on('click',function(){ register(); });
+        $("#logoutSubmit").on('click',function(){ logout(); });
         $("#ui_login").show();
         $("#ui_play").hide();
         $("#ui_register").hide();
+        $("#ui_nav").hide();
 });
 
