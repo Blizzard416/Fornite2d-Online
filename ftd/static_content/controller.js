@@ -55,21 +55,30 @@ function login(){
         	$("#ui_login").hide();
         	$("#ui_play").show();
                 $("#ui_nav").show();
-                document.getElementById('username').value='';
-                document.getElementById('password').value='';
+                $("#username").val("");
+                $("#password").val("");
 		setupGame();
 		startGame();
 
         }).fail(function(err){
+                document.getElementById('login-err').innerHTML=err.responseJSON.error;
                 console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
         });
 }
 
 function register(){
+        var user = {
+                "username": $("#r-username").val(),
+                "password": $("#r-password").val(),
+                "repassword": $("#repassword").val(),
+                "difficulty": $("input[name='difficulty']:checked").val(),
+                "country": $("#country").val(),
+                "email": $("#email").val(),
+        }
         $.ajax({ 
-		method: "POST", 
-		url: "/api/register/"+$("#r-username").val(),
-		data: JSON.stringify({"password": $("r-password").val(), "repassword": $("#repassword").val()}),
+	        method: "POST", 
+		url: "/api/register/",
+		data: JSON.stringify(user),
 		processData:false, 
 		contentType: "application/json; charset=utf-8",
 		dataType:"json"
@@ -98,27 +107,44 @@ function logout() {
         $("#ui_login").show();
 }
 
-// Using the /api/auth/test route, must send authorization header
-function test(){
-        $.ajax({
-                method: "GET",
-                url: "/api/auth/test",
-                data: {},
-		headers: { "Authorization": "Basic " + btoa(credentials.username + ":" + credentials.password) },
-                dataType:"json"
-        }).done(function(data, text_status, jqXHR){
-                console.log(jqXHR.status+" "+text_status+JSON.stringify(data));
-        }).fail(function(err){
-                console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
-        });
+function loginValidation(){
+        $(".login").css("border-color", "none");
+        if ($("#username").val()=="") {
+                alert("Username must be filled out");
+                $("#username").css("border-color", "red");
+        } else if ($("#password").val()==""){
+                alert("Password must be filled out");
+                $("#password").css("border-color", "red");
+        } else {
+                login()
+        }
+}
+
+function registerValidation(){
+        $( ".reg" ).css( "border-color", "black" );
+        if ($("#r-username").val()=="") {
+                alert("Username must be filled out");
+                $("#r-username").css("border-color", "red");
+        } else if ($("#r-password").val()==""){
+                alert("Password must be filled out");
+                $("#r-password").css("border-color", "red");
+        } else if ($("#repassword").val()==""){
+                alert("Confirm password must be filled out");
+                $("#r-repassword").css("border-color", "red");
+        } else if ($("#email").val()==""){
+                alert("Email must be filled out");
+                $("#email").css("border-color", "red");
+        } else {
+                register()
+        }
 }
 
 $(function(){
         // Setup all events here and display the appropriate UI
-        $("#loginSubmit").on('click',function(){ login(); });
+        $("#loginSubmit").on('click',function(){ loginValidation(); });
         $("#registerSubmit").on('click',function(){ toRegister(); });
         $("#back").on('click',function(){ toLogin(); });
-        $("#register").on('click',function(){ register(); });
+        $("#registerButton").on('click',function(){ registerValidation(); });
         $("#logoutSubmit").on('click',function(){ logout(); });
         $("#ui_login").show();
         $("#ui_play").hide();

@@ -24,19 +24,12 @@ function isNaturalNumber(value) { return /^\d+$/.test(value); }
 app.use(bodyParser.json());
 // app.use(bodyParser.raw()); // support raw bodies
 
-// Non authenticated route. Can visit this without credentials
-app.post('/api/test', function (req, res) {
-	res.status(200); 
-	res.json({"message":"got here"}); 
-});
-
-app.post('/api/register/:username/', function (req, res) {
-		var username = req.params.username;
+app.post('/api/register', function (req, res) {
 		console.log(JSON.stringify(req.body));
 
-		if (!"password" in req.body || !"repassword" in req.body) {
+		if (!"username" in req.body || !"password" in req.body || !"repassword" in req.body) {
 			res.status(400);
-			res.json({"error":'Missing password or confirm password'});
+			res.json({"error":'Missing username, password or confirm password'});
 			return;
 		}
 		if(req.body.password!=req.body.repassword){
@@ -45,12 +38,12 @@ app.post('/api/register/:username/', function (req, res) {
 				return;
 		}
 	// Need work
-	let sql = 'INSERT INTO counter(counterName, counterValue) VALUES ($1,$2);';
-		pool.query(sql, [counterName, value], (err, pgRes) => {
+	let sql = 'INSERT INTO ftduser(username, password, difficulty, country, email, score) VALUES ($1,sha512($2),$3,$4,$5,0);';
+		pool.query(sql, [req.body.username, req.body.password, req.body.difficulty, req.body.country, req.body.email], (err, pgRes) => {
 		if(err && err.code==23505){ // pg duplicate key error
-					res.status(409);
-					res.json({"error":`${counterName} is already in database`});
-					return;
+			res.status(409);
+			res.json({"error":`${req.body.username} is already in database`});
+			return;
 		}
 		if (err) {
 			res.status(500);
@@ -58,13 +51,13 @@ app.post('/api/register/:username/', function (req, res) {
 			return;
 		} 
 			if(pgRes.rowCount == 1){
-			res.status(200);
-				res.json({[counterName]: value});
-			return;
+				res.status(200);
+				res.json({[req.body.username]: req.body.password});
+				return;
 			} else {
-			res.status(500);
-			res.json({"error":`couldn't add ${counterName}`});
-			return;
+				res.status(500);
+				res.json({"error":`couldn't add ${counterName}`});
+				return;
 			}
 	});
 });
@@ -91,20 +84,24 @@ app.use('/api/auth', function (req, res,next) {
 		var username = m[1];
 		var password = m[2];
 
-		console.log(username+" "+password);
+		if (username==""){
+			res.status(403).json({ error: 'Username cannot be empty'});
+		} else if (password==""){
+			res.status(403).json({ error: 'Password cannot be empty'});
+		}
 
 		let sql = 'SELECT * FROM ftduser WHERE username=$1 and password=sha512($2)';
         	pool.query(sql, [username, password], (err, pgRes) => {
   			if (err){
-                		res.status(403).json({ error: 'Not authorized'});
+                res.status(403).json({ error: 'Wrong username or password'});
 			} else if(pgRes.rowCount == 1){
 				next(); 
 			} else {
-                		res.status(403).json({ error: 'Not authorized'});
-        		}
+                res.status(403).json({ error: 'Wrong username or password'});
+        	}
 		});
 	} catch(err) {
-               	res.status(403).json({ error: 'Not authorized'});
+    	res.status(403).json({ error: 'Not authorized'});
 	}
 });
 
@@ -112,11 +109,6 @@ app.use('/api/auth', function (req, res,next) {
 app.post('/api/auth/login', function (req, res) {
 	res.status(200); 
 	res.json({"message":"authentication success"}); 
-});
-
-app.post('/api/auth/test', function (req, res) {
-	res.status(200); 
-	res.json({"message":"got to /api/auth/test"}); 
 });
 
 app.use('/',express.static('static_content')); 
