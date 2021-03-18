@@ -6,7 +6,6 @@ var keys = {'w': false,'a':false,'s':false,'d':false, 'p':false, 'c':false};
 function setupGame(){
 	stage=new Stage(document.getElementById('stage'));
 
-	// https://javascript.info/keyboard-events
 	document.addEventListener('keydown', moveByKey);
         document.addEventListener('keyup', moveByKey);
         document.addEventListener('mousemove', mouseFollow);
@@ -75,7 +74,7 @@ function register(){
                 "repassword": $("#repassword").val(),
                 "difficulty": $("input[name='difficulty']:checked").val(),
                 "country": $("#country").val(),
-                "email": $("#email").val(),
+                "email": $("#email").val()
         }
         $.ajax({ 
 	        method: "POST", 
@@ -85,7 +84,6 @@ function register(){
 		contentType: "application/json; charset=utf-8",
 		dataType:"json"
 	}).done(function(data, text_status, jqXHR){
-		console.log(jqXHR.status+" "+text_status+JSON.stringify(data));
 		$("#ui_login").show();
                 $("#ui_register").hide();
 	}).fail(function(err){
@@ -94,13 +92,8 @@ function register(){
 }
 
 function play(){
-	credentials =  { 
-		"username": $("#username").val(), 
-		"password": $("#password").val() 
-	};
-
         $.ajax({
-                method: "POST",
+                method: "GET",
                 url: "/api/auth/play",
                 data: JSON.stringify({}),
 		headers: { "Authorization": "Basic " + btoa(credentials.username + ":" + credentials.password) },
@@ -108,25 +101,17 @@ function play(){
                 contentType: "application/json; charset=utf-8",
                 dataType:"json"
         }).done(function(data, text_status, jqXHR){
-                console.log(jqXHR.status+" "+text_status+JSON.stringify(data));
-
         	startGame();
                 $(".page").hide();
                 $("#ui_play").show();
-
         }).fail(function(err){
                 console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
         });
 }
 
 function instruction(){
-	credentials =  { 
-		"username": $("#username").val(), 
-		"password": $("#password").val() 
-	};
-
         $.ajax({
-                method: "POST",
+                method: "GET",
                 url: "/api/auth/instruction",
                 data: JSON.stringify({}),
 		headers: { "Authorization": "Basic " + btoa(credentials.username + ":" + credentials.password) },
@@ -134,23 +119,37 @@ function instruction(){
                 contentType: "application/json; charset=utf-8",
                 dataType:"json"
         }).done(function(data, text_status, jqXHR){
-                console.log(jqXHR.status+" "+text_status+JSON.stringify(data));
-
         	pauseGame();
                 $(".page").hide();
                 $("#ui_instruction").show();
-
         }).fail(function(err){
                 console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
         });
 }
 
-function logout(){
-	credentials =  { 
-		"username": $("#username").val(), 
-		"password": $("#password").val() 
-	};
+function stats(){
+        $.ajax({
+                method: "GET",
+                url: "/api/auth/stats/"+credentials.username,
+                data: JSON.stringify({}),
+		headers: { "Authorization": "Basic " + btoa(credentials.username + ":" + credentials.password) },
+                processData:false,
+                contentType: "application/json; charset=utf-8",
+                dataType:"json"
+        }).done(function(data, text_status, jqXHR){
+                document.getElementById('playtimes').innerHTML="You played this game " + data.playtimes + " times";
+                document.getElementById('total').innerHTML="You total kill is " + data.total;
+                document.getElementById('highest').innerHTML="You highest kill is " + data.highest;
+        	pauseGame();
+                $(".page").hide();
+                $("#ui_stats").show();
+        }).fail(function(err){
+                console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
+                alert(err.responseJSON.error);
+        });
+}
 
+function logout(){
         $.ajax({
                 method: "POST",
                 url: "/api/auth/logout",
@@ -160,8 +159,6 @@ function logout(){
                 contentType: "application/json; charset=utf-8",
                 dataType:"json"
         }).done(function(data, text_status, jqXHR){
-                console.log(jqXHR.status+" "+text_status+JSON.stringify(data));
-
         	pauseGame();
                 $("#username").val("");
                 $("#password").val("");
@@ -170,7 +167,6 @@ function logout(){
                 $(".page").hide();
                 $("#ui_nav").hide();
                 $("#ui_login").show();
-
         }).fail(function(err){
                 document.getElementById('login-err').innerHTML=err.responseJSON.error;
                 console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
@@ -206,6 +202,7 @@ function loginValidation(){
 }
 
 function registerValidation(){
+        var emailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
         $(".reg").css("border-color", "black");
         if ($("#r-username").val()=="") {
                 alert("Username must be filled out");
@@ -223,6 +220,9 @@ function registerValidation(){
                 alert("Passwords are not identical");
                 $("#r-password").css("border-color", "red");
                 $("#repassword").css("border-color", "red");
+        } else if (!$("#email").val().match(emailformat)){
+                alert("Please enter valid email");
+                $("#email").css("border-color", "red");
         } else {
                 register()
         }
@@ -237,9 +237,9 @@ $(function(){
         $("#logoutSubmit").on('click',function(){ logout(); });
         $("#instructionsSubmit").on('click',function(){ instruction(); });
         $("#playSubmit").on('click',function(){ play(); });
+        $("#statsSubmit").on('click',function(){ stats(); });
         $("#ui_login").show();
-        $("#ui_play").hide();
         $("#ui_register").hide();
         $("#ui_nav").hide();
-        $("#ui_instruction").hide();
+        $(".page").hide();
 });

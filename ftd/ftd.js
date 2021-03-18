@@ -24,14 +24,13 @@ function isNaturalNumber(value) { return /^\d+$/.test(value); }
 app.use(bodyParser.json());
 // app.use(bodyParser.raw()); // support raw bodies
 
-app.post('/api/register', function (req, res) {
-
-		if (!"username" in req.body || !"password" in req.body || !"repassword" in req.body || !"difficulty" in req.body || !"country" in req.body || !"email" in req.body) {
-			return res.status(400).json({"error":'Missing required input'});
-		}
-		if(req.body.password!=req.body.repassword){
-			return res.status(400).json({"error":'Password and confirm password are not identical'});
-		}
+app.use('/api/register', function (req, res,next) {
+	if (!"username" in req.body || !"password" in req.body || !"repassword" in req.body || !"difficulty" in req.body || !"country" in req.body || !"email" in req.body) {
+		return res.status(400).json({"error":'Missing required input'});
+	}
+	if(req.body.password!=req.body.repassword){
+		return res.status(400).json({"error":'Password and confirm password are not identical'});
+	}
 	
 	let sql = 'INSERT INTO ftduser(username, password, difficulty, country, email) VALUES ($1,sha512($2),$3,$4,$5);';
 		pool.query(sql, [req.body.username, req.body.password, req.body.difficulty, req.body.country, req.body.email], (err, pgRes) => {
@@ -46,6 +45,7 @@ app.post('/api/register', function (req, res) {
 			return;
 		} 
 		if(pgRes.rowCount == 1){
+			console.log("req.body.username");
 			next();
 		} else {
 			res.status(500);
@@ -56,9 +56,10 @@ app.post('/api/register', function (req, res) {
 });
 
 app.post('/api/register/init', function (req, res) {
-	let sql = 'INSERT INTO stats(username, playtimes, hightestScore, totalScore) VALUES ($1, 0, 0, 0);';
+	let sql = 'INSERT INTO stats(username, playtimes, highestScore, totalScore) VALUES ($1, 0, 0, 0);';
 		pool.query(sql, [req.body.username], (err, pgRes) => {
 		if (err) {
+			console.log(req.body.username);
 			res.status(500);
 			res.json({"error":err.message});
 			return;
@@ -69,7 +70,7 @@ app.post('/api/register/init', function (req, res) {
 			return;
 		} else {
 			res.status(500);
-			res.json({"error":`couldn't update ${req.body.username}`});
+			res.json({"error":`couldn't initialize ${req.body.username}`});
 			return;
 		}
 	});
@@ -124,14 +125,36 @@ app.post('/api/auth/login', function (req, res) {
 	res.json({"message":"authentication success"}); 
 });
 
-app.post('/api/auth/play', function (req, res) {
+app.get('/api/auth/play', function (req, res) {
 	res.status(200); 
 	res.json({"message":"authentication success"}); 
 });
 
-app.post('/api/auth/instruction', function (req, res) {
+app.get('/api/auth/instruction', function (req, res) {
 	res.status(200); 
 	res.json({"message":"authentication success"}); 
+});
+
+app.get('/api/auth/stats/:username', function (req, res) {
+	var userName = req.params.username;
+
+	let sql = 'SELECT * FROM stats WHERE username=$1;';
+		pool.query(sql, [userName], (err, pgRes) => {
+		if (err) {
+			res.status(500);
+			res.json({"error":err.message});
+			return;
+		} 
+		if(pgRes.rowCount == 1){
+			res.status(200);
+			res.json({"playtimes":pgRes.rows[0].playtimes, "highest":pgRes.rows[0].highestscore, "total":pgRes.rows[0].totalscore}); 
+			return;
+		} else {
+			res.status(500);
+			res.json({"error":`couldn't find user ${userName}`});
+			return;
+		}
+	});
 });
 
 app.post('/api/auth/logout', function (req, res) {

@@ -13,7 +13,7 @@ CREATE TABLE ftduser (
 CREATE TABLE stats (
 	username VARCHAR(20) PRIMARY KEY,
 	playtimes int NOT NULL,
-	hightestScore int NOT NULL,
+	highestScore int NOT NULL,
 	totalScore int NOT NULL,
 	FOREIGN KEY(username) REFERENCES ftduser(username)
 );
