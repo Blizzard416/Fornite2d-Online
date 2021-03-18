@@ -25,60 +25,60 @@
             </ul>
 		</div>
 		<div id="ui_login">
-			<div>
-				<legend>Login</legend>
-					<table>
-						<tr><th><label for="username">User</label></th><td><input type="text" class="login" id="username" placeholder="User Name" /></td></tr>
-						<tr><th><label for="password">Password</label></th><td> <input type="password" class="login" id="password" placeholder="Password" /></td></tr>
-						<tr><th>&nbsp;</th><td><input type="submit" id="loginSubmit" value="Login"></td></tr>
-						<tr><th>&nbsp;</th><td><input type="submit" id="registerSubmit" value="Register"></td></tr>
-					</table>
-					<p style="color:red;" id="login-err"></p>
-					<br>
-			</div>
+			<legend>Login</legend>
+				<table>
+					<tr><th><label for="username">User</label></th><td><input type="text" class="login" id="username" placeholder="User Name" /></td></tr>
+					<tr><th><label for="password">Password</label></th><td> <input type="password" class="login" id="password" placeholder="Password" /></td></tr>
+					<tr><th>&nbsp;</th><td><input type="submit" id="loginSubmit" value="Login"></td></tr>
+					<tr><th>&nbsp;</th><td><input type="submit" id="registerSubmit" value="Register"></td></tr>
+				</table>
+				<p style="color:red;" id="login-err"></p>
+				<br>
 		</div>
 		<div id="ui_register">
-			<div>
-				<legend>Register</legend>
-					<label for="r-username">User:</label>
-					<input type="text" class="reg" id="r-username" placeholder="User Name"/>
-					<br>
+			<legend>Register</legend>
+				<label for="r-username">User:</label>
+				<input type="text" class="reg" id="r-username" placeholder="User Name"/>
+				<br>
 
-					<label for="r-password">Password:</label>
-					<input type="password" class="reg" id="r-password" placeholder="Password"/>
-					<br>
+				<label for="r-password">Password:</label>
+				<input type="password" class="reg" id="r-password" placeholder="Password"/>
+				<br>
 
-					<label for="repassword">Comfirm Password:</label>
-					<input type="password" class="reg" id="repassword" placeholder="Confirm Password"/>
-					<br>
+				<label for="repassword">Comfirm Password:</label>
+				<input type="password" class="reg" id="repassword" placeholder="Confirm Password"/>
+				<br>
 
-					<label for="difficulty">Difficulty:</label>
-                    <label class="spe"><input type="radio" name="difficulty" value="easy" checked/>Easy</label>
-                    <label class="spe"><input type="radio" name="difficulty" value="medium"/>Medium</label>
-                    <label class="spe"><input type="radio" name="difficulty" value="hard"/>Hard</label>
-					<br>
+				<label for="difficulty">Difficulty:</label>
+                <label class="spe"><input type="radio" name="difficulty" value="easy" checked/>Easy</label>
+                <label class="spe"><input type="radio" name="difficulty" value="medium"/>Medium</label>
+                <label class="spe"><input type="radio" name="difficulty" value="hard"/>Hard</label>
+				<br>
 
-					<!-- Drop box selector -->
-					<label for="country">Country:</label>
-					<select id="country" name="country">
-						<option value="canada">Canada</option>
-						<option value="usa">United States</option>
-					</select>
-					<br>
+				<!-- Drop box selector -->
+				<label for="country">Country:</label>
+				<select id="country" name="country">
+					<option value="canada">Canada</option>
+					<option value="usa">United States</option>
+				</select>
+				<br>
 
-					<!-- Email text field -->
-					<label for="email">Email:</label>
-					<input id="email" class="reg" type="email" name="email" placeholder="Email">
-					<br>
+				<!-- Email text field -->
+				<label for="email">Email:</label>
+				<input id="email" class="reg" type="email" name="email" placeholder="Email">
+				<br>
 
-					<p style="color:red;" id="reg-err"></p>
-					<br>
+				<p style="color:red;" id="reg-err"></p>
+				<br>
 
-					<input type="submit" id="registerButton" value="Register">
-					<input type="submit" id="back" value="Back">
-			</div>
+				<input type="submit" id="registerButton" value="Register">
+				<input type="submit" id="back" value="Back">
 		</div>
-		<div id="ui_play">
+		<div class="page" id="ui_instruction">
+			<legend>Game Instruction</legend>
+				<p>Hello</p>
+		</div>
+		<div class="page" id="ui_play">
 			<center>
 				<canvas id="stage" width="800" height="800" style="border:1px solid black;"> </canvas>
 			</center>

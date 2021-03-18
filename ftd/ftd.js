@@ -25,24 +25,19 @@ app.use(bodyParser.json());
 // app.use(bodyParser.raw()); // support raw bodies
 
 app.post('/api/register', function (req, res) {
-		console.log(JSON.stringify(req.body));
 
-		if (!"username" in req.body || !"password" in req.body || !"repassword" in req.body) {
-			res.status(400);
-			res.json({"error":'Missing username, password or confirm password'});
-			return;
+		if (!"username" in req.body || !"password" in req.body || !"repassword" in req.body || !"difficulty" in req.body || !"country" in req.body || !"email" in req.body) {
+			return res.status(400).json({"error":'Missing required input'});
 		}
 		if(req.body.password!=req.body.repassword){
-				res.status(400);
-				res.json({"error":'Password and confirm password are not identical'});
-				return;
+			return res.status(400).json({"error":'Password and confirm password are not identical'});
 		}
-	// Need work
-	let sql = 'INSERT INTO ftduser(username, password, difficulty, country, email, score) VALUES ($1,sha512($2),$3,$4,$5,0);';
+	
+	let sql = 'INSERT INTO ftduser(username, password, difficulty, country, email) VALUES ($1,sha512($2),$3,$4,$5);';
 		pool.query(sql, [req.body.username, req.body.password, req.body.difficulty, req.body.country, req.body.email], (err, pgRes) => {
 		if(err && err.code==23505){ // pg duplicate key error
 			res.status(409);
-			res.json({"error":`${req.body.username} is already in database`});
+			res.json({"error":`Username ${req.body.username} is already in database`});
 			return;
 		}
 		if (err) {
@@ -50,15 +45,33 @@ app.post('/api/register', function (req, res) {
 			res.json({"error":err.message});
 			return;
 		} 
-			if(pgRes.rowCount == 1){
-				res.status(200);
-				res.json({[req.body.username]: req.body.password});
-				return;
-			} else {
-				res.status(500);
-				res.json({"error":`couldn't add ${counterName}`});
-				return;
-			}
+		if(pgRes.rowCount == 1){
+			next();
+		} else {
+			res.status(500);
+			res.json({"error":`couldn't add ${req.body.username}`});
+			return;
+		}
+	});
+});
+
+app.post('/api/register/init', function (req, res) {
+	let sql = 'INSERT INTO stats(username, playtimes, hightestScore, totalScore) VALUES ($1, 0, 0, 0);';
+		pool.query(sql, [req.body.username], (err, pgRes) => {
+		if (err) {
+			res.status(500);
+			res.json({"error":err.message});
+			return;
+		} 
+		if(pgRes.rowCount == 1){
+			res.status(200);
+			res.json({"message":"success"}); 
+			return;
+		} else {
+			res.status(500);
+			res.json({"error":`couldn't update ${req.body.username}`});
+			return;
+		}
 	});
 });
 
@@ -85,9 +98,9 @@ app.use('/api/auth', function (req, res,next) {
 		var password = m[2];
 
 		if (username==""){
-			res.status(403).json({ error: 'Username cannot be empty'});
+			return res.status(403).json({ error: 'Username cannot be empty'});
 		} else if (password==""){
-			res.status(403).json({ error: 'Password cannot be empty'});
+			return res.status(403).json({ error: 'Password cannot be empty'});
 		}
 
 		let sql = 'SELECT * FROM ftduser WHERE username=$1 and password=sha512($2)';
@@ -107,6 +120,21 @@ app.use('/api/auth', function (req, res,next) {
 
 // All routes below /api/auth require credentials 
 app.post('/api/auth/login', function (req, res) {
+	res.status(200); 
+	res.json({"message":"authentication success"}); 
+});
+
+app.post('/api/auth/play', function (req, res) {
+	res.status(200); 
+	res.json({"message":"authentication success"}); 
+});
+
+app.post('/api/auth/instruction', function (req, res) {
+	res.status(200); 
+	res.json({"message":"authentication success"}); 
+});
+
+app.post('/api/auth/logout', function (req, res) {
 	res.status(200); 
 	res.json({"message":"authentication success"}); 
 });
