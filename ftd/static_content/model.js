@@ -4,7 +4,7 @@ function rand(n){ return Math.random()*n; }
 class Stage {
 	constructor(canvas){
 		this.canvas = canvas;
-	
+		//this.camera = Pair(0,0);
 		this.actors=[]; // all actors on this stage (monsters, player, boxes, ...)
 		this.player=null; // a special actor, the player
 	
@@ -21,9 +21,9 @@ class Stage {
 		
 		var total=40;
 		while(total>0){
-			var x=Math.floor((Math.random()*this.width)); 
-			var y=Math.floor((Math.random()*this.height)); 
-			if(this.getActor(x,y,null)===null){
+			var x=Math.floor((Math.random()*(this.width-20))); 
+			var y=Math.floor((Math.random()*(this.width-20))); 
+			if(this.getActor(x,y,this.player)===null){
 				var red=randint(0, 255), green=randint(0, 255), blue=randint(0, 255);
 				var alpha = Math.random();
 				var radius = randint(30,40);
@@ -39,7 +39,7 @@ class Stage {
 		while(total>0){
 			var x=Math.floor((Math.random()*this.width)); 
 			var y=Math.floor((Math.random()*this.height)); 
-			if(this.getActor(x,y)===null){
+			if(this.getActor(x,y,this.player)===null){
 				var radius = 10;
 				var velocity = new Pair(rand(20), rand(20));
 				var alpha = Math.random();
@@ -86,12 +86,18 @@ class Stage {
 	draw(){
 		var context = this.canvas.getContext('2d');
 		context.clearRect(0, 0, this.width, this.height);
-		context.restore();
+		context.save();
+		context.transform(1.5,0,0,1.5,0,0);
+		context.translate(this.width/3-this.player.x,this.height/3-this.player.y);
+		
+		context.lineWidth = 2;
+		context.strokeStyle="#FF0000";
+		context.strokeRect(0, 0, this.width, this.height);
+		
 		for(var i=0;i<this.actors.length;i++){
 			this.actors[i].draw(context);
 		}
-		context.save();
-		context.translate(this.player.position.x - context.width / 2, this.player.position.y - context.height / 2);
+		context.restore();
 	}
 
 	// return the first actor at coordinates (x,y) return null if there is no such actor
@@ -115,6 +121,7 @@ class Stage {
 		return null;
 	}
 } // End Class Stages
+
 
 class Pair {
 	constructor(x,y){
@@ -167,14 +174,18 @@ class Ball {
 		this.colour = colour;
 		this.radius = radius;
 		this.isOb = isOb;
+		this.pointer = new Pair(0,0);
 	}
 	
 	headTo(position){
+		
 		this.velocity.x=(position.x-this.position.x);
 		this.velocity.y=(position.y-this.position.y);
+		this.pointer = new Pair(this.velocity.x,this.velocity.y);
 		this.velocity.normalize();
 		this.velocity.x*=3;
 		this.velocity.y*=3;
+		
 	}
 
 	toString(){
@@ -201,7 +212,16 @@ class Ball {
    		// context.fillRect(this.x, this.y, this.radius,this.radius);
 		context.beginPath(); 
 		context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false); 
-		context.fill();   
+		context.fill();  
+		context.save();
+		context.translate(this.x, this.y);
+		context.rotate((3 * Math.PI/2) + Math.atan2(this.pointer.y, this.pointer.x));
+		context.beginPath();
+    	context.moveTo(0,  this.radius*3/2);
+    	context.lineTo(this.radius/2, this.radius);
+    	context.lineTo(-this.radius/2, this.radius);
+		context.fill();
+		context.restore();
 	}
 }
 
@@ -236,5 +256,18 @@ class Player extends Ball {
 		context.beginPath(); 
 		context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false); 
 		context.fill();
+		context.fillRect(this.x, this.y, 5,5)
+		context.save();
+		console.log(this.pointer.y, this.pointer.x);
+		context.translate(this.x, this.y);
+		
+		context.rotate((3 * Math.PI/2) + Math.atan2(this.pointer.y, this.pointer.x));
+		
+		context.beginPath();
+    	context.moveTo(0,  this.radius*2);
+    	context.lineTo(this.radius/2, this.radius);
+    	context.lineTo(-this.radius/2, this.radius);
+		context.fill();
+		context.restore();
 	}
 }

@@ -2,43 +2,43 @@ var stage=null;
 var view = null;
 var interval=null;
 var credentials={ "username": "", "password":"" };
+var keys = {'w': false,'a':false,'s':false,'d':false, 'p':false, 'c':false};
 function setupGame(){
 	stage=new Stage(document.getElementById('stage'));
 
 	// https://javascript.info/keyboard-events
-	document.addEventListener('keydown', keyEvent);
-        document.addEventListener('keyup', moveByKeyUP);
+	document.addEventListener('keydown', moveByKey);
+        document.addEventListener('keyup', moveByKey);
         document.addEventListener('mousemove', mouseFollow);
 }
 function startGame(){
-	interval=setInterval(function(){ stage.step(); stage.draw(); },100);
+	interval=setInterval(function(){ stage.step(); stage.draw(); },70);
 }
 function pauseGame(){
 	clearInterval(interval);
 	interval=null;
 }
-function keyEvent(event){
-	var key = event.key;
-	var moveMap = { 
-		'a': new Pair(-15,0),
-		's': new Pair(0,15),
-		'd': new Pair(15,0),
-		'w': new Pair(0,-15)
-	};
-	if(key in moveMap){
-		stage.player.velocity=moveMap[key];
-	} else if (key == 'p'){
-                pauseGame()
-        } else if (key == 'c'){
-                startGame()
-        }
+function moveByKey(event){
+        var x = y = 0;
+	var e = event.key;
+        keys[e] = true;
+        if(event.type == 'keyup') keys[e] = false;
+        if(event.type == 'keydown' && e == 'p'){pauseGame()}
+        if(event.type == 'keydown' && e == 'c'){startGame()};
+	if(keys['w']) y -= 10;
+        if(keys['a']) x -= 10;
+        if(keys['s']) y += 10;
+        if(keys['d']) x += 10;
+
+	stage.player.velocity=new Pair(x,y);
 }
-function moveByKeyUP(){
-	stage.player.velocity=new Pair(0,0);
-}
+
 function mouseFollow(event){
-        
+        var offsetx = document.getElementById('stage').offsetLeft + document.getElementById('stage').width/2;
+        var offsety = document.getElementById('stage').offsetTop + document.getElementById('stage').height/2;
+        stage.player.pointer = new Pair(event.x - offsetx , event.y - offsety);
 }
+
 function login(){
 	credentials =  { 
 		"username": $("#username").val(), 
@@ -243,4 +243,3 @@ $(function(){
         $("#ui_nav").hide();
         $("#ui_instruction").hide();
 });
-
