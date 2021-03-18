@@ -15,7 +15,7 @@ CREATE TABLE stats (
 	playtimes int NOT NULL,
 	highestScore int NOT NULL,
 	totalScore int NOT NULL,
-	FOREIGN KEY(username) REFERENCES ftduser(username)
+	FOREIGN KEY(username) REFERENCES ftduser(username) ON DELETE CASCADE
 );
 --- Could have also stored as 128 character hex encoded values
 --- select char_length(encode(sha512('abc'), 'hex')); --- returns 128

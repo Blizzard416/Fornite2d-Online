@@ -25,10 +25,16 @@ app.use(bodyParser.json());
 // app.use(bodyParser.raw()); // support raw bodies
 
 app.use('/api/register', function (req, res,next) {
+	var emailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+
 	if (!"username" in req.body || !"password" in req.body || !"repassword" in req.body || !"difficulty" in req.body || !"country" in req.body || !"email" in req.body) {
 		return res.status(400).json({"error":'Missing required input'});
 	}
 	if(req.body.password!=req.body.repassword){
+		return res.status(400).json({"error":'Password and confirm password are not identical'});
+	}
+	
+	if (!req.body.email.match(emailformat)){
 		return res.status(400).json({"error":'Password and confirm password are not identical'});
 	}
 	
@@ -45,7 +51,6 @@ app.use('/api/register', function (req, res,next) {
 			return;
 		} 
 		if(pgRes.rowCount == 1){
-			console.log("req.body.username");
 			next();
 		} else {
 			res.status(500);
@@ -157,11 +162,90 @@ app.get('/api/auth/stats/:username', function (req, res) {
 	});
 });
 
+app.get('/api/auth/profile/:username', function (req, res) {
+	var userName = req.params.username;
+
+	let sql = 'SELECT * FROM ftduser WHERE username=$1;';
+		pool.query(sql, [userName], (err, pgRes) => {
+		if (err) {
+			res.status(500);
+			res.json({"error":err.message});
+			return;
+		} 
+		if(pgRes.rowCount == 1){
+			res.status(200);
+			res.json({"difficulty":pgRes.rows[0].difficulty, "country":pgRes.rows[0].country, "email":pgRes.rows[0].email}); 
+			return;
+		} else {
+			res.status(500);
+			res.json({"error":`couldn't find user ${userName}`});
+			return;
+		}
+	});
+});
+
+app.put('/api/auth/profile/:username', function (req, res) {
+	var userName = req.params.username;
+	var emailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+
+	if (!"password" in req.body || !"repassword" in req.body || !"difficulty" in req.body || !"country" in req.body || !"email" in req.body) {
+		return res.status(400).json({"error":'Missing required input'});
+	}
+	if(req.body.password!=req.body.repassword){
+		return res.status(400).json({"error":'Password and confirm password are not identical'});
+	}
+
+	if (!req.body.email.match(emailformat)){
+		return res.status(400).json({"error":'Password and confirm password are not identical'});
+	}
+	
+	let sql = 'UPDATE ftduser SET password=sha512($2), difficulty=$3, country=$4, email=$5 WHERE username=$1;';
+	pool.query(sql, [userName, req.body.password, req.body.difficulty, req.body.country, req.body.email], (err, pgRes) => {
+		if (err) {
+			res.status(500);
+			res.json({"error":err.message});
+			return;
+		} 
+		if(pgRes.rowCount == 1){
+			res.status(200);
+			res.json({"password":req.body.password}); 
+			return;
+		} else {
+			res.status(500);
+			res.json({"error":`couldn't update ${userName}`});
+			return;
+		}
+	});
+});
+
+app.delete('/api/auth/profile/:username', function (req, res) {
+	var userName = req.params.username;
+
+	let sql = 'DELETE FROM ftduser WHERE username=$1;';
+		pool.query(sql, [userName], (err, pgRes) => {
+		if (err) {
+			res.status(500);
+			res.json({"error":err.message});
+			return;
+		} 
+		if(pgRes.rowCount == 1){
+			res.status(200);
+			res.json({"message":"success"}); 
+			return;
+		} else {
+			res.status(500);
+			res.json({"error":`couldn't find user ${userName}`});
+			return;
+		}
+	});
+});
+
+/** 
 app.post('/api/auth/logout', function (req, res) {
 	res.status(200); 
 	res.json({"message":"authentication success"}); 
 });
-
+*/
 app.use('/',express.static('static_content')); 
 
 app.listen(port, function () {

@@ -17,11 +17,11 @@
 		<div id="ui_nav">
 			<ul>
                 <!-- Display navigation-->
-                <li> <input type="submit" id="playSubmit" value="Play"> </li>
-                <li> <input type="submit" id="instructionsSubmit" value="Instructions"> </li>
-                <li> <input type="submit" id="statsSubmit" value="Stats"> </li>
-                <li> <input type="submit" id="profileSubmit" value="Profile"> </li>
-                <li> <input type="submit" id="logoutSubmit" value="Logout"> </li>
+                <li> <input type="submit" id="play" value="Play"> </li>
+                <li> <input type="submit" id="instructions" value="Instructions"> </li>
+                <li> <input type="submit" id="stats" value="Stats"> </li>
+                <li> <input type="submit" id="profile" value="Profile"> </li>
+                <li> <input type="submit" id="logout" value="Logout"> </li>
             </ul>
 		</div>
 		<div id="ui_login">
@@ -29,11 +29,9 @@
 				<table>
 					<tr><th><label for="username">User</label></th><td><input type="text" class="login" id="username" placeholder="User Name" /></td></tr>
 					<tr><th><label for="password">Password</label></th><td> <input type="password" class="login" id="password" placeholder="Password" /></td></tr>
-					<tr><th>&nbsp;</th><td><input type="submit" id="loginSubmit" value="Login"></td></tr>
-					<tr><th>&nbsp;</th><td><input type="submit" id="registerSubmit" value="Register"></td></tr>
+					<tr><th>&nbsp;</th><td><input type="submit" id="login" value="Login"></td></tr>
+					<tr><th>&nbsp;</th><td><input type="submit" id="register" value="Register"></td></tr>
 				</table>
-				<p style="color:red;" id="login-err"></p>
-				<br>
 		</div>
 		<div id="ui_register">
 			<legend>Register</legend>
@@ -45,33 +43,30 @@
 				<input type="password" class="reg" id="r-password" placeholder="Password"/>
 				<br>
 
-				<label for="repassword">Comfirm Password:</label>
-				<input type="password" class="reg" id="repassword" placeholder="Confirm Password"/>
+				<label for="r-repassword">Comfirm Password:</label>
+				<input type="password" class="reg" id="r-repassword" placeholder="Confirm Password"/>
 				<br>
 
-				<label for="difficulty">Difficulty:</label>
-                <label class="spe"><input type="radio" name="difficulty" value="easy" checked/>Easy</label>
-                <label class="spe"><input type="radio" name="difficulty" value="medium"/>Medium</label>
-                <label class="spe"><input type="radio" name="difficulty" value="hard"/>Hard</label>
+				<label for="r-difficulty">Difficulty:</label>
+                <label><input type="radio" name="r-difficulty" value="easy" checked/>Easy</label>
+                <label><input type="radio" name="r-difficulty" value="medium"/>Medium</label>
+                <label><input type="radio" name="r-difficulty" value="hard"/>Hard</label>
 				<br>
 
 				<!-- Drop box selector -->
-				<label for="country">Country:</label>
-				<select id="country" name="country">
+				<label for="r-country">Country:</label>
+				<select id="r-country" name="r-country">
 					<option value="canada">Canada</option>
 					<option value="usa">United States</option>
 				</select>
 				<br>
 
 				<!-- Email text field -->
-				<label for="email">Email:</label>
-				<input id="email" class="reg" type="email" name="email" placeholder="Email">
+				<label for="r-email">Email:</label>
+				<input id="r-email" class="reg" type="email" placeholder="Email">
 				<br>
 
-				<p style="color:red;" id="reg-err"></p>
-				<br>
-
-				<input type="submit" id="registerButton" value="Register">
+				<input type="submit" id="registerSubmit" value="Register">
 				<input type="submit" id="back" value="Back">
 		</div>
 		<div class="page" id="ui_instruction">
@@ -83,6 +78,42 @@
 				<p id="playtimes"></p>
 				<p id="total"></p>
 				<p id="highest"></p>
+		</div>
+		<div class="page" id="ui_profile">
+			<legend>Profile</legend>
+				<label for="p-username">User:</label>
+				<p id="p-username"></p>
+				<br>
+
+				<label for="p-password">Password:</label>
+				<input type="password" class="pro" id="p-password"/>
+				<br>
+
+				<label for="p-repassword">Comfirm Password:</label>
+				<input type="password" class="pro" id="p-repassword"/>
+				<br>
+
+				<label for="p-difficulty">Difficulty:</label>
+                <label><input type="radio" name="p-difficulty" value="easy"/>Easy</label>
+                <label><input type="radio" name="p-difficulty" value="medium"/>Medium</label>
+                <label><input type="radio" name="p-difficulty" value="hard"/>Hard</label>
+				<br>
+
+				<!-- Drop box selector -->
+				<label for="p-country">Country:</label>
+				<select id="p-country" name="p-country">
+					<option value="canada">Canada</option>
+					<option value="usa">United States</option>
+				</select>
+				<br>
+
+				<!-- Email text field -->
+				<label for="p-email">Email:</label>
+				<input class="pro" id="p-email" type="email">
+				<br>
+
+				<input type="submit" id="update" value="Update">
+				<input type="submit" id="delete" value="Delete">
 		</div>
 		<div class="page" id="ui_play">
 			<center>

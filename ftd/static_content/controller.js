@@ -62,7 +62,7 @@ function login(){
 		startGame();
 
         }).fail(function(err){
-                document.getElementById('login-err').innerHTML=err.responseJSON.error;
+                alert(err.responseJSON.error);
                 console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
         });
 }
@@ -71,10 +71,10 @@ function register(){
         var user = {
                 "username": $("#r-username").val(),
                 "password": $("#r-password").val(),
-                "repassword": $("#repassword").val(),
-                "difficulty": $("input[name='difficulty']:checked").val(),
-                "country": $("#country").val(),
-                "email": $("#email").val()
+                "repassword": $("#r-repassword").val(),
+                "difficulty": $("input[name='r-difficulty']:checked").val(),
+                "country": $("#r-country").val(),
+                "email": $("#r-email").val()
         }
         $.ajax({ 
 	        method: "POST", 
@@ -87,7 +87,7 @@ function register(){
 		$("#ui_login").show();
                 $("#ui_register").hide();
 	}).fail(function(err){
-                document.getElementById('reg-err').innerHTML=err.responseJSON.error;
+                alert(err.responseJSON.error);
 	});
 }
 
@@ -149,6 +149,80 @@ function stats(){
         });
 }
 
+function profile(){
+        $.ajax({
+                method: "GET",
+                url: "/api/auth/profile/"+credentials.username,
+                data: JSON.stringify({}),
+		headers: { "Authorization": "Basic " + btoa(credentials.username + ":" + credentials.password) },
+                processData:false,
+                contentType: "application/json; charset=utf-8",
+                dataType:"json"
+        }).done(function(data, text_status, jqXHR){
+                document.getElementById('p-username').innerHTML=credentials.username;
+                $("#p-password").val(credentials.password);
+                $("#p-repassword").val(credentials.password);
+                $('#ui_profile').find(`:radio[name=p-difficulty][value=${data.difficulty}]`).prop('checked', true);
+                $("#p-country").val(data.country);
+                $("#p-email").val(data.email);
+        	pauseGame();
+                $(".page").hide();
+                $("#ui_profile").show();
+        }).fail(function(err){
+                console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
+                alert(err.responseJSON.error);
+        });
+}
+
+function updateUser() {
+        var user = {
+                "password": $("#p-password").val(),
+                "repassword": $("#p-repassword").val(),
+                "difficulty": $("input[name='p-difficulty']:checked").val(),
+                "country": $("#p-country").val(),
+                "email": $("#p-email").val()
+        }
+        $.ajax({ 
+	        method: "PUT", 
+		url: "/api/auth/profile/"+credentials.username,
+		data: JSON.stringify(user),
+                headers: { "Authorization": "Basic " + btoa(credentials.username + ":" + credentials.password) },
+		processData:false, 
+		contentType: "application/json; charset=utf-8",
+		dataType:"json"
+	}).done(function(data, text_status, jqXHR){
+		credentials.password=data.password;
+	}).fail(function(err){
+                alert(err.responseJSON.error);
+	});
+}
+
+function deleteUser() {
+        $.ajax({
+                method: "DELETE",
+                url: "/api/auth/profile/"+credentials.username,
+                data: JSON.stringify({}),
+		headers: { "Authorization": "Basic " + btoa(credentials.username + ":" + credentials.password) },
+                processData:false,
+                contentType: "application/json; charset=utf-8",
+                dataType:"json"
+        }).done(function(data, text_status, jqXHR){
+                logout();
+        }).fail(function(err){
+                alert(err.responseJSON.error);
+        });
+}
+
+function logout(){
+        pauseGame();
+        $("#username").val("");
+        $("#password").val("");
+        $(".login").css("border-color", "black");
+        $(".page").hide();
+        $("#ui_nav").hide();
+        $("#ui_login").show();
+}
+/**
 function logout(){
         $.ajax({
                 method: "POST",
@@ -162,7 +236,6 @@ function logout(){
         	pauseGame();
                 $("#username").val("");
                 $("#password").val("");
-                document.getElementById('login-err').innerHTML="";
                 $(".login").css("border-color", "black");
                 $(".page").hide();
                 $("#ui_nav").hide();
@@ -172,17 +245,15 @@ function logout(){
                 console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
         });
 }
-
+*/
 function toRegister() {
         $(".reg").val("");
-        document.getElementById('reg-err').innerHTML="";
         $(".reg").css("border-color", "black");
         $("#ui_login").hide();
         $("#ui_register").show();
 }
 
 function toLogin() {
-        document.getElementById('login-err').innerHTML="";
         $(".login").css("border-color", "black");
         $("#ui_login").show();
         $("#ui_register").hide();
@@ -201,43 +272,64 @@ function loginValidation(){
         }
 }
 
-function registerValidation(){
+function Validation(isReg){
         var emailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-        $(".reg").css("border-color", "black");
-        if ($("#r-username").val()=="") {
-                alert("Username must be filled out");
-                $("#r-username").css("border-color", "red");
-        } else if ($("#r-password").val()==""){
-                alert("Password must be filled out");
-                $("#r-password").css("border-color", "red");
-        } else if ($("#repassword").val()==""){
-                alert("Confirm password must be filled out");
-                $("#repassword").css("border-color", "red");
-        } else if ($("#email").val()==""){
-                alert("Email must be filled out");
-                $("#email").css("border-color", "red");
-        } else if ($("#r-password").val()!=$("#repassword").val()){
-                alert("Passwords are not identical");
-                $("#r-password").css("border-color", "red");
-                $("#repassword").css("border-color", "red");
-        } else if (!$("#email").val().match(emailformat)){
-                alert("Please enter valid email");
-                $("#email").css("border-color", "red");
+        var username, password, repassword, email;
+
+        if (isReg){
+                username="#r-username";
+                password="#r-password";
+                repassword="#r-repassword";
+                email="#r-email";
+                $(".reg").css("border-color", "black");
         } else {
-                register()
+                password="#p-password";
+                repassword="#p-repassword";
+                email="#p-email";
+                $(".pro").css("border-color", "black");
+        }
+
+        if ($(username).val()=="" && isReg) {
+                alert("Username must be filled out");
+                $(username).css("border-color", "red");
+        } else if ($(password).val()==""){
+                alert("Password must be filled out");
+                $(password).css("border-color", "red");
+        } else if ($(repassword).val()==""){
+                alert("Confirm password must be filled out");
+                $(repassword).css("border-color", "red");
+        } else if ($(email).val()==""){
+                alert("Email must be filled out");
+                $(email).css("border-color", "red");
+        } else if ($(password).val()!=$(repassword).val()){
+                alert("Passwords are not identical");
+                $(password).css("border-color", "red");
+                $(repassword).css("border-color", "red");
+        } else if (!$(email).val().match(emailformat)){
+                alert("Please enter valid email");
+                $(email).css("border-color", "red");
+        } else {
+                if (isReg){
+                        register();
+                } else {
+                        updateUser();
+                }
         }
 }
 
 $(function(){
         // Setup all events here and display the appropriate UI
-        $("#loginSubmit").on('click',function(){ loginValidation(); });
-        $("#registerSubmit").on('click',function(){ toRegister(); });
+        $("#login").on('click',function(){ loginValidation(); });
+        $("#register").on('click',function(){ toRegister(); });
         $("#back").on('click',function(){ toLogin(); });
-        $("#registerButton").on('click',function(){ registerValidation(); });
-        $("#logoutSubmit").on('click',function(){ logout(); });
-        $("#instructionsSubmit").on('click',function(){ instruction(); });
-        $("#playSubmit").on('click',function(){ play(); });
-        $("#statsSubmit").on('click',function(){ stats(); });
+        $("#registerSubmit").on('click',function(){ Validation(true); });
+        $("#logout").on('click',function(){ logout(); });
+        $("#instructions").on('click',function(){ instruction(); });
+        $("#play").on('click',function(){ play(); });
+        $("#stats").on('click',function(){ stats(); });
+        $("#profile").on('click',function(){ profile(); });
+        $("#update").on('click',function(){ Validation(false); });
+        $("#delete").on('click',function(){ deleteUser(); });
         $("#ui_login").show();
         $("#ui_register").hide();
         $("#ui_nav").hide();
