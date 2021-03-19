@@ -6,7 +6,7 @@ var keys = {'w': false,'a':false,'s':false,'d':false, 'p':false, 'c':false};
 var leaderBoardList = ["leaderBoardEasy", "leaderBoardInter", "leaderBoardHard"];
 var difficulty;
 function setupGame(){
-        if (difficulty=="easy"){
+	if (difficulty=="easy"){
                 stage=new Stage(document.getElementById('stage'), 20, 10, 30, 15);
         } else if (difficulty=="intermediate") {
                 stage=new Stage(document.getElementById('stage'), 30, 15, 60, 10);
@@ -18,12 +18,16 @@ function setupGame(){
         document.addEventListener('keyup', moveByKey);
         document.addEventListener('mousemove', mouseFollow);
         document.addEventListener('mousedown', Fire);
+        document.addEventListener('mouseup', mouseup);
 }
 function startGame(){
 	interval=setInterval(function(){
-                 stage.step();
-                 if(stage.isEnd)endGame();
-                 stage.draw(); 
+                        stage.step();
+                        if(stage.isEnd||stage.isWin){
+                                endGame();
+                                return;
+                        }
+                        stage.draw(); 
                 },70);
 }
 function pauseGame(){
@@ -32,7 +36,12 @@ function pauseGame(){
 }
 
 function endGame(){
-	pauseGame(); // placeholder
+        pauseGame();
+        if(stage.isEnd){
+                stage.Lose();
+        }else if (stage.isWin){
+                stage.Win();
+        }
         updateScore(stage.player.kills);
 }
 
@@ -58,17 +67,21 @@ function mouseFollow(event){
 }
 
 function Fire(event){
-        if(event.button === 0){
-                if(stage.player.ammo > 0){
-                        var angle = Math.atan2(stage.player.pointer.y , stage.player.pointer.x);
-                        var velocity = new Pair(stage.player.velocity.x/2 + Math.cos(angle)*30, stage.player.velocity.y/2 + Math.sin(angle)*30);
-                        var colour= 'rgba(0,0,0,1)';
-                        var position = new Pair(stage.player.x, stage.player.y);
-                        var b = new Bullet(stage, position, velocity, colour, 1, false, true, false, stage.player);
-                        stage.addActor(b);
-                        stage.player.ammo -=1;
-                }
-        }
+        timeout = setInterval(function () {
+                        if(stage.player.ammo > 0){
+                                var angle = Math.atan2(stage.player.pointer.y , stage.player.pointer.x);
+                                var velocity = new Pair(stage.player.velocity.x/2 + Math.cos(angle)*30, stage.player.velocity.y/2 + Math.sin(angle)*30);
+                                var colour= 'rgba(0,0,0,1)';
+                                var position = new Pair(stage.player.x, stage.player.y);
+                                var b = new Bullet(stage, position, velocity, colour, 2, false, true, false, stage.player);
+                                stage.addActor(b);
+                                stage.player.ammo -=1;
+                 };
+        }, stage.player.firerate);         
+}
+
+function mouseup(event){
+        clearInterval(timeout);       
 }
 
 function login(){
@@ -222,7 +235,7 @@ function leaderBoard(type){
 		contentType: "application/json; charset=utf-8",
 		dataType:"json"
 	}).done(function(data, text_status, jqXHR){
-		var lb = data.array;
+		var scores = data.array;
                 //alert(type);
                 if (type=="leaderBoardEasy"){
                         var leaderboard = document.getElementById("leaderBoardEasy");
@@ -245,7 +258,7 @@ function leaderBoard(type){
                 row.appendChild(title);
                 leaderboard.appendChild(row);
 
-                for(let i=0; i<10; i++) {
+                for(let i=0; i<scores.length; i++) {
                         var rank = document.createElement("td");
                         var name = document.createElement("td");
                         var score = document.createElement("td");
@@ -255,10 +268,8 @@ function leaderBoard(type){
                         score.classList.add("score");
                         row.classList.add("row");
                         rank.innerText = i+1;
-                        if (i<lb.length){
-                                name.innerText = lb[i][0];
-                                score.innerText = lb[i][1];
-                        }
+                        name.innerText = scores[i][0];
+                        score.innerText = scores[i][1];
 
                         row.appendChild(rank);
                         row.appendChild(name);
