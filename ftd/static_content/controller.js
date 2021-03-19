@@ -4,8 +4,15 @@ var interval=null;
 var credentials={ "username": "", "password":"" };
 var keys = {'w': false,'a':false,'s':false,'d':false, 'p':false, 'c':false};
 var leaderBoardList = ["leaderBoardEasy", "leaderBoardInter", "leaderBoardHard"];
+var difficulty;
 function setupGame(){
-	stage=new Stage(document.getElementById('stage'), 50, 10, 50, 5);
+        if (difficulty=="easy"){
+                stage=new Stage(document.getElementById('stage'), 20, 10, 30, 15);
+        } else if (difficulty=="intermediate") {
+                stage=new Stage(document.getElementById('stage'), 30, 15, 60, 10);
+        } else {
+                stage=new Stage(document.getElementById('stage'), 40, 20, 90, 5);
+        }
 
 	document.addEventListener('keydown', moveByKey);
         document.addEventListener('keyup', moveByKey);
@@ -85,6 +92,7 @@ function login(){
         	$("#ui_play").show();
                 $("#ui_nav").show();
                 navHelper("#play");
+                difficulty="easy";
 		setupGame();
 		startGame();
 
@@ -301,14 +309,11 @@ function deleteUser() {
         });
 }
 
-function restart(difficulty) {
+function restart() {
+        pauseGame();
         setupGame();
 	startGame();
 }
-
-$("input[name='difficulty']").change(function(){
-        restart($("input[name='difficulty']:checked").val());
-});
 
 function navHelper(id) {
         $(".nav").css("background-color", "white");
@@ -425,7 +430,11 @@ $(function(){
         $("#profile").on('click',function(){ profile(); });
         $("#update").on('click',function(){ Validation(false); });
         $("#delete").on('click',function(){ deleteUser(); });
-        $("#restart").on('click',function(){ restart(null); });
+        $("#restart").on('click',function(){ restart(); });
+        $("input[name='difficulty']").on('change', function(){
+                difficulty=$("input[name='difficulty']:checked").val();
+                restart();
+        });
         $("#ui_login").show();
         lbDisplay(true);
         $("#ui_register").hide();
