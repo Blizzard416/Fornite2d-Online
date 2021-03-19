@@ -35,7 +35,7 @@ app.use('/api/register', function (req, res,next) {
 	}
 	
 	if (!req.body.email.match(emailformat)){
-		return res.status(400).json({"error":'Password and confirm password are not identical'});
+		return res.status(400).json({"error":'Invalid email format'});
 	}
 	
 	let sql = 'INSERT INTO ftduser(username, password, gender, country, email) VALUES ($1,sha512($2),$3,$4,$5);';
@@ -258,6 +258,76 @@ app.delete('/api/auth/profile/:username', function (req, res) {
 			res.status(200);
 			res.json({"message":"success"}); 
 			return;
+		} else {
+			res.status(500);
+			res.json({"error":`couldn't find user ${userName}`});
+			return;
+		}
+	});
+});
+
+app.use('/api/auth/updateScore/:username', function (req, res, next) {
+	var userName = req.params.username;
+	let sql;
+
+	if (!"difficulty" in req.body || !"score" in req.body) {
+		return res.status(400).json({"error":'Missing required data'});
+	}
+
+	if (req.body.difficulty=="easy") {
+		sql = 'SELECT easyHighest AS old FROM stats WHERE username=$1;';
+	} else if (req.body.difficulty=="intermediate") {
+		sql = 'SELECT interHighest AS old FROM stats WHERE username=$1;';
+	} else if (req.body.difficulty=="hard") {
+		sql = 'SELECT hardHighest AS old FROM stats WHERE username=$1;';
+	} else {
+		return res.status(400).json({"error":'Invalid difficulty'});
+	}
+
+		pool.query(sql, [userName], (err, pgRes) => {
+		if (err) {
+			res.status(500);
+			res.json({"error":err.message});
+			return;
+		} 
+		if(pgRes.rowCount == 1){
+			if (pgRes.rows[0].old<req.body.score) {
+				next();
+			} else {
+				res.status(200);
+				res.json({"message":"not highest"});
+			}
+		} else {
+			res.status(500);
+			res.json({"error":`couldn't find user ${userName}`});
+			return;
+		}
+	});
+});
+
+app.put('/api/auth/updateScore/:username', function (req, res) {
+	var userName = req.params.username;
+	let sql;
+
+	if (req.body.difficulty=="easy") {
+		sql = 'UPDATE stats SET easyHighest=$2 WHERE username=$1;';
+	} else if (req.body.difficulty=="intermediate") {
+		sql = 'UPDATE stats SET interHighest=$2 WHERE username=$1;';
+	} else if (req.body.difficulty=="hard") {
+		sql = 'UPDATE stats SET hardHighest=$2 WHERE username=$1;';
+	} else {
+		return res.status(400).json({"error":'Invalid difficulty'});
+	}
+
+		pool.query(sql, [userName, req.body.score], (err, pgRes) => {
+		if (err) {
+			res.status(500);
+			res.json({"error":err.message});
+			return;
+		} 
+		if(pgRes.rowCount == 1){
+			res.status(200);
+			res.json({"message":"score updated"});
 		} else {
 			res.status(500);
 			res.json({"error":`couldn't find user ${userName}`});

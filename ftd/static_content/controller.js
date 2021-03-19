@@ -33,6 +33,7 @@ function pauseGame(){
 
 function endGame(){
 	pauseGame(); // placeholder
+        updateScore(stage.player.kills);
 }
 
 function moveByKey(event){
@@ -137,12 +138,11 @@ function play(){
                 contentType: "application/json; charset=utf-8",
                 dataType:"json"
         }).done(function(data, text_status, jqXHR){
-        	startGame();
                 navHelper("#play");
                 $(".page").hide();
                 $("#ui_play").show();
         }).fail(function(err){
-                console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
+                alert(err.responseJSON.error);
         });
 }
 
@@ -161,7 +161,7 @@ function instruction(){
                 $(".page").hide();
                 $("#ui_instruction").show();
         }).fail(function(err){
-                console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
+                alert(err.responseJSON.error);
         });
 }
 
@@ -183,7 +183,6 @@ function stats(){
                 $(".page").hide();
                 $("#ui_stats").show();
         }).fail(function(err){
-                console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
                 alert(err.responseJSON.error);
         });
 }
@@ -307,6 +306,26 @@ function deleteUser() {
         }).fail(function(err){
                 alert(err.responseJSON.error);
         });
+}
+
+function updateScore(score) {
+        var newScore = {
+                "difficulty": difficulty,
+                "score": score
+        }
+        $.ajax({ 
+	        method: "PUT", 
+		url: "/api/auth/updateScore/"+credentials.username,
+		data: JSON.stringify(newScore),
+                headers: { "Authorization": "Basic " + btoa(credentials.username + ":" + credentials.password) },
+		processData:false, 
+		contentType: "application/json; charset=utf-8",
+		dataType:"json"
+	}).done(function(data, text_status, jqXHR){
+		alert(data.message);
+	}).fail(function(err){
+                alert(err.responseJSON.error);
+	});
 }
 
 function restart() {
