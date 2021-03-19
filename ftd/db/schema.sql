@@ -15,7 +15,10 @@ CREATE TABLE stats (
 	easyHighest int NOT NULL,
 	interHighest int NOT NULL,
 	hardHighest int NOT NULL,
-	FOREIGN KEY(username) REFERENCES ftduser(username) ON DELETE CASCADE
+	FOREIGN KEY(username) REFERENCES ftduser(username) ON DELETE CASCADE,
+	CHECK (easyHighest >= 0),
+	CHECK (interHighest >= 0),
+	CHECK (hardHighest >= 0)
 );
 --- Could have also stored as 128 character hex encoded values
 --- select char_length(encode(sha512('abc'), 'hex')); --- returns 128

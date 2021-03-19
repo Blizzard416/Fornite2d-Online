@@ -23,7 +23,8 @@ class Stage {
 		var total=ob;
 		while(total>0){
 			var x=Math.floor((Math.random()*(this.width-40))); 
-			var y=Math.floor((Math.random()*(this.width-40))); 
+			var y=Math.floor((Math.random()*(this.height-40))); 
+			if (x>this.width/2-40 && x<this.width/2+40 && y<this.height/2+40 && y<this.height/2+40) continue;
 			if(this.getActor(x,y,this.player)===null){
 				var red=randint(0, 255), green=randint(0, 255), blue=randint(0, 255);
 				var alpha = Math.random()*0.8 + 0.2;
