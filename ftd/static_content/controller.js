@@ -33,6 +33,7 @@ function startGame(){
 function pauseGame(){
 	clearInterval(interval);
 	interval=null;
+        if(!stage.isEnd&&!stage.isWin)stage.Pause();
 }
 
 function endGame(){
@@ -83,7 +84,6 @@ function Fire(event){
 function mouseup(event){
         clearInterval(timeout);       
 }
-
 function login(){
 	credentials =  { 
 		"username": $("#username").val(), 
