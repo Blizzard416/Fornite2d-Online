@@ -24,7 +24,7 @@ class Stage {
 		while(total>0){
 			var x=Math.floor((Math.random()*(this.width-40))); 
 			var y=Math.floor((Math.random()*(this.height-40))); 
-			if (x>this.width/2-40 && x<this.width/2+40 && y<this.height/2+40 && y<this.height/2+40) continue;
+			if (x>this.width/2-40 && x<this.width/2+40 && y<this.height/2+40 && y<this.height/2+40) continue; 
 			if(this.getActor(x,y,this.player)===null){
 				var red=randint(0, 255), green=randint(0, 255), blue=randint(0, 255);
 				var alpha = Math.random()*0.8 + 0.2;
@@ -42,14 +42,14 @@ class Stage {
 		}
 		var total = 10;
 		while(total>0){
-			var x=Math.floor((Math.random()*(this.width-40))); 
-			var y=Math.floor((Math.random()*(this.width-40))); 
+			var x=Math.floor((Math.random()*(this.width))); 
+			var y=Math.floor((Math.random()*(this.height))); 
 			if(this.getActor(x,y,this.player)===null){
 				b = new Ammo(this, new Pair(x,y), "#3Cb043", 5, false, false, true);
 				this.addActor(b);
 			}
-			x=Math.floor((Math.random()*(this.width-40))); 
-			y=Math.floor((Math.random()*(this.width-40))); 
+			x=Math.floor((Math.random()*(this.width))); 
+			y=Math.floor((Math.random()*(this.height))); 
 			if(this.getActor(x,y,this.player)===null){
 				b = new Medkit(this, new Pair(x,y), "#ff8080", 5, false, false, true);
 				this.addActor(b);
@@ -58,8 +58,8 @@ class Stage {
 		}
 		var total = 5;
 		while(total>0){
-			var x=Math.floor((Math.random()*(this.width-40))); 
-			var y=Math.floor((Math.random()*(this.width-40))); 
+			var x=Math.floor((Math.random()*(this.width))); 
+			var y=Math.floor((Math.random()*(this.height))); 
 			if(this.getActor(x,y,this.player)===null){
 				b = new Rifle(this, new Pair(x,y), "#000000", 5, false, false, true);
 				this.addActor(b);
@@ -468,10 +468,10 @@ class Ball {
 		context.fill();
 		context.restore();
 		context.fillStyle="#FF0000";
-		context.fillRect(this.x - this.full*7/2, this.y - this.radius -10, this.health*7 , 5);  
+		context.fillRect(this.x - this.radius -10, this.y - this.radius -10, 30/this.full * this.health , 5);  
 		context.lineWidth = 1;
 		context.strokeStyle="#000000";
-		context.strokeRect(this.x - this.full*7/2, this.y - this.radius -10, this.full*7 , 5); 
+		context.strokeRect(this.x - this.radius -10, this.y - this.radius -10, 30 , 5); 
 	}
 }
 
@@ -529,10 +529,10 @@ class Player extends Ball {
 		context.restore();
 		
 		context.fillStyle="#FF0000";
-		context.fillRect(this.x - this.full*7/2 , this.y - this.radius -10, this.health*7 , 5);  
+		context.fillRect(this.x - this.radius -10, this.y - this.radius -10, 30/this.full * this.health , 5);  
 		context.lineWidth = 1;
 		context.strokeStyle="#000000";
-		context.strokeRect(this.x - this.full*7/2, this.y - this.radius -10, this.full*7 , 5); 
+		context.strokeRect(this.x - this.radius -10, this.y - this.radius -10, 30 , 5); 
 	}
 }
 
