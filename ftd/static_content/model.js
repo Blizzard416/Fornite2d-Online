@@ -8,6 +8,7 @@ class Stage {
 		this.actors=[]; // all actors on this stage (monsters, player, boxes, ...)
 		this.player=null; // a special actor, the player
 		this.isEnd = false;
+		this.isWin = false;
 		this.rate = rate;
 		// the logical width and height of the stage
 		this.width=canvas.width;
@@ -15,41 +16,61 @@ class Stage {
 		
 		// Add the player to the center of the stage
 		var velocity = new Pair(0,0);
-		var radius = 8;
+		var radius = 6;
 		var colour= 'rgba(124,252,0,1)';
 		var position = new Pair(Math.floor(this.width/2), Math.floor(this.height/2));
 		this.addPlayer(new Player(this, position, velocity, colour, radius, false, false, false, hp));
-		this.score = 10*this.player.kills;
 		var total=ob;
 		while(total>0){
 			var x=Math.floor((Math.random()*(this.width-40))); 
 			var y=Math.floor((Math.random()*(this.width-40))); 
 			if(this.getActor(x,y,this.player)===null){
 				var red=randint(0, 255), green=randint(0, 255), blue=randint(0, 255);
-				var alpha = Math.random();
+				var alpha = Math.random()*0.8 + 0.2;
 				var radius = randint(30,40);
 				var colour= 'rgba('+red+','+green+','+blue+','+alpha+')';
 				var position = new Pair(x,y);
 				var b;
-				if(Math.random()*10 <= 1){
-					b = new Ammo(this, position, "#008e00", 25, false, false, true);
-				}else if(Math.random()*10 >=8){
-					b = new Medkit(this, position, "#ff8080", 25, false, false, true);
-				}else{
-					b = new Obstacles(this, position, colour, radius, true, false, false);
-				}
-
+			
+				b = new Obstacles(this, position, colour, radius, true, false, false);
 				this.addActor(b);
+
+				
 				total--;
 			}
 		}
-		
+		var total = 10;
+		while(total>0){
+			var x=Math.floor((Math.random()*(this.width-40))); 
+			var y=Math.floor((Math.random()*(this.width-40))); 
+			if(this.getActor(x,y,this.player)===null){
+				b = new Ammo(this, new Pair(x,y), "#008e00", 5, false, false, true);
+				this.addActor(b);
+			}
+			x=Math.floor((Math.random()*(this.width-40))); 
+			y=Math.floor((Math.random()*(this.width-40))); 
+			if(this.getActor(x,y,this.player)===null){
+				b = new Medkit(this, new Pair(x,y), "#ff8080", 5, false, false, true);
+				this.addActor(b);
+			}	
+			total--;
+		}
+		var total = 5;
+		while(total>0){
+			var x=Math.floor((Math.random()*(this.width-40))); 
+			var y=Math.floor((Math.random()*(this.width-40))); 
+			if(this.getActor(x,y,this.player)===null){
+				b = new Rifle(this, new Pair(x,y), "#000000", 5, false, false, true);
+				this.addActor(b);
+			}			
+			total--;
+		}
 		var total=ai;
 		while(total>0){
 			var x=Math.floor((Math.random()*this.width)); 
 			var y=Math.floor((Math.random()*this.height)); 
 			if(this.getActor(x,y,this.player)===null){
-				var radius = 8;
+				var radius = 6;
 				var velocity = new Pair(rand(20), rand(20));
 				var alpha = Math.random();
 				var colour= 'rgba(255,0,0,1)';
@@ -96,7 +117,7 @@ class Stage {
 					var velocity = new Pair(this.actors[i].velocity.x/2 + Math.cos(angle)*20, this.actors[i].velocity.y/2 + Math.sin(angle)*20);
 					var colour= 'rgba(0,0,0,1)';
 					var position = new Pair(this.actors[i].x,this.actors[i].y);
-					var b = new Bullet(this, position, velocity, colour, 1, false, true, false, this.actors[i]);
+					var b = new Bullet(this, position, velocity, colour, 2, false, true, false, this.actors[i]);
 					this.addActor(b);
 				}
 			}
@@ -107,9 +128,11 @@ class Stage {
 				}
 				this.removeActor(this.actors[i]);
 			}
+			this.countAlive();
+			if(this.alive == 1 && this.actors.includes(this.player)){
+				this.isWin = true;
+			}
 		}
-		this.countAlive();
-
 	}
 
 	draw(){
@@ -128,6 +151,7 @@ class Stage {
 		}
 
 		context.restore();
+		context.fillStyle="#000000";
 		context.font = "30px Georgia";
 		context.fillText("HP:" + this.player.health, 0, 25);
 		context.fillText("Kills:" + this.player.kills, 0, 55);
@@ -166,11 +190,53 @@ class Stage {
 	countAlive(){
 		this.alive = 0;	
 		for(var i=0;i<this.actors.length;i++){
-			if(!this.actors[i].isOb && !this.actors[i].isBullet ){
+			if(!this.actors[i].isOb && !this.actors[i].isBullet && !this.actors[i].isItem){
 				this.alive +=1;
 			}
 		}
 		
+	}
+
+	Lose(){
+		var context = this.canvas.getContext('2d');
+		context.clearRect(0, 0, this.width, this.height);
+		this.draw();
+		context.globalAlpha = 0.5;
+		context.fillStyle = "grey";
+		context.fillRect(0, 0, this.width, this.height);
+		context.globalAlpha = 1;
+		
+		context.font = "60px Georgia";
+		context.fillStyle = "white";
+		context.fillText("Lose", this.width/2 - 70, this.height/2);
+		context.lineWidth = 2;
+		context.strokeStyle="#000000";
+		context.strokeText("Lose", this.width/2 - 70, this.height/2);
+		context.font = "30px Georgia";
+		context.fillText("You are Dead", this.width/2 - 100, this.height/2+60);
+		context.fillText("Your rank is No. " + (this.alive) , this.width/2 - 125, this.height/2 + 90);
+		context.strokeText("You are Dead", this.width/2 - 100, this.height/2+60);
+		context.strokeText("Your rank is No. " + (this.alive) , this.width/2 - 125, this.height/2 + 90);
+	}
+
+	Win(){
+		var context = this.canvas.getContext('2d');
+		context.clearRect(0, 0, this.width, this.height);
+		this.draw();
+		context.globalAlpha = 0.5;
+		context.fillStyle = "grey";
+		context.fillRect(0, 0, this.width, this.height);
+		context.globalAlpha = 1;
+		context.font = "60px Georgia";
+		context.fillStyle = "white";
+		context.fillText("WIN", this.width/2 - 65, this.height/2);
+		context.lineWidth = 2;
+		context.strokeStyle="#000000";
+		context.strokeText("WIN", this.width/2 - 65, this.height/2);
+		context.font = "30px Georgia";
+		context.fillText("You are the f0rt9it32d Champoion!", this.width/2 - 220, this.height/2+60);
+		context.strokeText("You are the f0rt9it32d Champoion!", this.width/2 - 220, this.height/2+60);
+
 	}
 } // End Class Stages
 
@@ -261,7 +327,7 @@ class Item {
 	draw(context){
 		context.fillStyle = this.colour;
    		context.fillRect(this.x, this.y, this.length, this.length);
-		context.lineWidth = 3;
+		context.lineWidth = 1;
 		context.strokeStyle="#000000";
 		context.strokeRect(this.x, this.y, this.length, this.length);  	
 	}
@@ -275,6 +341,10 @@ class Ammo extends Item {
 			this.health = -1;
 		}
 	}
+
+	clean(){
+		return (this.health <= 0 ||(Math.abs(this.x-this.stage.player.x) >= 3*this.stage.width/4 && Math.abs(this.y-this.stage.player.y) >= 3*this.stage.width/4));
+	}
 }
 
 class Medkit extends Item {
@@ -287,6 +357,20 @@ class Medkit extends Item {
 			}
 		}
 	}
+
+}
+
+class Rifle extends Item {
+	step() {
+		var collide = this.stage.getActor(this.x, this.y, this);
+		if(collide!==null){
+			if(collide == this.stage.player){
+				this.stage.player.firerate = 100;
+				this.health = -1;
+			}
+		}
+	}
+
 }
 
 class Ball {
@@ -363,10 +447,10 @@ class Ball {
 		context.fill();
 		context.restore();
 		context.fillStyle="#FF0000";
-		context.fillRect(this.x - this.radius -10, this.y - this.radius -10, this.health*7 , 5);  
+		context.fillRect(this.x - this.full*7/2, this.y - this.radius -10, this.health*7 , 5);  
 		context.lineWidth = 1;
 		context.strokeStyle="#000000";
-		context.strokeRect(this.x - this.radius -10, this.y - this.radius -10, 35 , 5); 
+		context.strokeRect(this.x - this.full*7/2, this.y - this.radius -10, this.full*7 , 5); 
 	}
 }
 
@@ -374,10 +458,11 @@ class Player extends Ball {
 	constructor(stage, position, velocity, colour, radius, isOb, isBullet, isItem, hp){
 		super(stage, position, velocity, colour, radius, isOb, isBullet, isItem);
 		this.health = hp;
+		this.full = this.health;
+		this.firerate = 300;
 	}
 
 	step(){
-		this.counter++;
 		this.position.x=this.position.x+this.velocity.x;
 		this.position.y=this.position.y+this.velocity.y;
 
@@ -402,7 +487,6 @@ class Player extends Ball {
 		}
 
 		this.intPosition();
-		if(this.counter == 100)this.counter = 0;
 	}
 
 	draw(context){
@@ -424,10 +508,10 @@ class Player extends Ball {
 		context.restore();
 		
 		context.fillStyle="#FF0000";
-		context.fillRect(this.x - this.radius -10, this.y - this.radius -10, this.health*7 , 5);  
+		context.fillRect(this.x - this.full*7/2 , this.y - this.radius -10, this.health*7 , 5);  
 		context.lineWidth = 1;
 		context.strokeStyle="#000000";
-		context.strokeRect(this.x - this.radius -10, this.y - this.radius -10, this.full*7 , 5); 
+		context.strokeRect(this.x - this.full*7/2, this.y - this.radius -10, this.full*7 , 5); 
 	}
 }
 
