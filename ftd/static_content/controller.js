@@ -4,7 +4,7 @@ var interval=null;
 var credentials={ "username": "", "password":"" };
 var keys = {'w': false,'a':false,'s':false,'d':false, 'p':false, 'c':false};
 function setupGame(){
-	stage=new Stage(document.getElementById('stage'), 40, 10, 50);
+	stage=new Stage(document.getElementById('stage'), 50, 10, 50, 5);
 
 	document.addEventListener('keydown', moveByKey);
         document.addEventListener('keyup', moveByKey);
@@ -50,12 +50,15 @@ function mouseFollow(event){
 
 function Fire(event){
         if(event.button === 0){
-                var angle = Math.atan2(stage.player.pointer.y , stage.player.pointer.x);
-		var velocity = new Pair(stage.player.velocity.x/2 + Math.cos(angle)*30, stage.player.velocity.y/2 + Math.sin(angle)*30);
-		var colour= 'rgba(0,0,0,1)';
-		var position = new Pair(stage.player.x, stage.player.y);
-		var b = new Bullet(stage, position, velocity, colour, 2, false, true, stage.player);
-                stage.addActor(b);
+                if(stage.player.ammo > 0){
+                        var angle = Math.atan2(stage.player.pointer.y , stage.player.pointer.x);
+                        var velocity = new Pair(stage.player.velocity.x/2 + Math.cos(angle)*30, stage.player.velocity.y/2 + Math.sin(angle)*30);
+                        var colour= 'rgba(0,0,0,1)';
+                        var position = new Pair(stage.player.x, stage.player.y);
+                        var b = new Bullet(stage, position, velocity, colour, 1, false, true, false, stage.player);
+                        stage.addActor(b);
+                        stage.player.ammo -=1;
+                }
         }
 }
 
