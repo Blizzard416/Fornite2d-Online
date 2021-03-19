@@ -82,9 +82,6 @@ function login(){
 
         	$("#ui_login").hide();
                 lbDisplay(false);
-                $("#ui_leaderBoardEasy").hide();
-                $("#ui_leaderBoardInter").hide();
-                $("#ui_leaderBoardHard").hide();
         	$("#ui_play").show();
                 $("#ui_nav").show();
                 navHelper("#play");
@@ -212,40 +209,53 @@ function profile(){
 function leaderBoard(type){
         $.ajax({ 
 	        method: "GET", 
-		url: "/api/"+type,
+		url: "/api/leaderBoard/"+type,
 		data: JSON.stringify({}),
 		processData:false, 
 		contentType: "application/json; charset=utf-8",
 		dataType:"json"
 	}).done(function(data, text_status, jqXHR){
-		let scores = data.array;
-
-                let leaderboard = document.getElementById("ui_leaderBoardEasy");
+		var scores = data.array;
+                //alert(type);
+                if (type=="leaderBoardEasy"){
+                        var leaderboard = document.getElementById("leaderBoardEasy");
+                } else if (type=="leaderBoardInter") {
+                        var leaderboard = document.getElementById("leaderBoardInter");
+                } else {
+                        var leaderboard = document.getElementById("leaderBoardHard");
+                }
                 leaderboard.innerHTML = "";
 
-                let elements = []; // we'll need created elements to update colors later on
-                // create elements for each player
+                var row = document.createElement("tr");
+                var title = document.createElement("th");
+                title.innerText="TOP";
+                row.appendChild(title);
+                var title = document.createElement("th");
+                title.innerText="Player";
+                row.appendChild(title);
+                var title = document.createElement("th");
+                title.innerText="Kills";
+                row.appendChild(title);
+                leaderboard.appendChild(row);
+
                 for(let i=0; i<scores.length; i++) {
-                        let name = document.createElement("div");
-                        let score = document.createElement("div");
+                        var rank = document.createElement("td");
+                        var name = document.createElement("td");
+                        var score = document.createElement("td");
+                        var row = document.createElement("tr");
+
                         name.classList.add("name");
                         score.classList.add("score");
+                        row.classList.add("row");
+                        rank.innerText = i+1;
                         name.innerText = scores[i][0];
                         score.innerText = scores[i][1];
 
-                        let scoreRow = document.createElement("div");
-                        scoreRow.classList.add("row");
-                        scoreRow.appendChild(name);
-                        scoreRow.appendChild(score);
-                        leaderboard.appendChild(scoreRow);
+                        row.appendChild(rank);
+                        row.appendChild(name);
+                        row.appendChild(score);
+                        leaderboard.appendChild(row);
 
-                        elements.push(scoreRow);
-
-                }
-
-                let colors = ["gold", "silver", "#cd7f32"];
-                for(let i=0; i < 3; i++) {
-                        elements[i].style.color = colors[i];
                 }
 	}).fail(function(err){
                 alert(err.responseJSON.error);
@@ -392,13 +402,13 @@ function Validation(isReg){
 }
 
 function lbDisplay(show) {
-        for (type in leaderBoardList) {
-                if (show) {
-                        leaderBoard(type);
-                        $("#ui_"+type).show();
-                } else {
-                        $("#ui_"+type).hide();
+        if (show) {
+                for (i in leaderBoardList) {
+                        leaderBoard(leaderBoardList[i]);
                 }
+                $(".lb").show();
+        } else {
+                $(".lb").hide();
         }
 }
 

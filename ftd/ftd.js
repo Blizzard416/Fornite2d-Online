@@ -81,8 +81,8 @@ app.post('/api/register/init', function (req, res) {
 	});
 });
 
-app.get('/api/:leaderBoardType', function (req, res) {
-	var type = req.params.leaderBoardType, score;
+app.get('/api/leaderBoard/:leaderBoardType', function (req, res) {
+	var type = req.params.leaderBoardType;
 	let sql;
 	if (type=="leaderBoardEasy") {
 		sql = 'SELECT username, easyhighest AS score FROM stats ORDER BY easyhighest DESC LIMIT 10;';
@@ -103,7 +103,6 @@ app.get('/api/:leaderBoardType', function (req, res) {
 		for(let i=0; i<pgRes.rowCount; i++) {
 			response.push([pgRes.rows[i].username, pgRes.rows[i].score]);
 		}
-		console.log(response);
 		res.json({"array": response}); 
 	});
 });
