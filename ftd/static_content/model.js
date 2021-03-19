@@ -238,6 +238,26 @@ class Stage {
 		context.strokeText("You are the f0rt9it32d Champoion!", this.width/2 - 220, this.height/2+60);
 
 	}
+
+	Pause(){
+		var context = this.canvas.getContext('2d');
+		context.clearRect(0, 0, this.width, this.height);
+		this.draw();
+		context.globalAlpha = 0.5;
+		context.fillStyle = "grey";
+		context.fillRect(0, 0, this.width, this.height);
+		context.globalAlpha = 1;
+		context.font = "60px Georgia";
+		context.fillStyle = "white";
+		context.fillText("PAUSE", this.width/2 - 100, this.height/2);
+		context.lineWidth = 2;
+		context.strokeStyle="#000000";
+		context.strokeText("PAUSE", this.width/2 - 100, this.height/2);
+		context.font = "30px Georgia";
+		context.fillText("Press C to Resume", this.width/2 - 120, this.height/2+60);
+		context.strokeText("Press C to Resume", this.width/2 - 120, this.height/2+60);
+
+	}
 } // End Class Stages
 
 
@@ -420,8 +440,8 @@ class Ball {
 		var collide = this.stage.getActor(this.position.x, this.position.y, this);
 		if(collide!==null){
 			if(!collide.isBullet&&!collide.isItem){
-				this.position.x-=5*this.velocity.x;
-				this.position.y-=5*this.velocity.y;
+				this.position.x-=this.velocity.x;
+				this.position.y-=this.velocity.y;
 			}
 		}
 		if(this.counter == 100)this.counter = 0;
@@ -481,8 +501,8 @@ class Player extends Ball {
 		var collide = this.stage.getActor(this.position.x, this.position.y, this);
 		if(collide!==null){
 			if(!collide.isBullet&&!collide.isItem){
-				this.position.x-=5*this.velocity.x;
-				this.position.y-=5*this.velocity.y;
+				this.position.x-=this.velocity.x;
+				this.position.y-=this.velocity.y;
 			}
 		}
 
