@@ -16,7 +16,7 @@ class Stage {
 		
 		// Add the player to the center of the stage
 		var velocity = new Pair(0,0);
-		var radius = 6;
+		var radius = 5;
 		var colour= 'rgba(124,252,0,1)';
 		var position = new Pair(Math.floor(this.width/2), Math.floor(this.height/2));
 		this.addPlayer(new Player(this, position, velocity, colour, radius, false, false, false, hp));
@@ -44,7 +44,7 @@ class Stage {
 			var x=Math.floor((Math.random()*(this.width-40))); 
 			var y=Math.floor((Math.random()*(this.width-40))); 
 			if(this.getActor(x,y,this.player)===null){
-				b = new Ammo(this, new Pair(x,y), "#008e00", 5, false, false, true);
+				b = new Ammo(this, new Pair(x,y), "#3Cb043", 5, false, false, true);
 				this.addActor(b);
 			}
 			x=Math.floor((Math.random()*(this.width-40))); 
@@ -70,7 +70,7 @@ class Stage {
 			var x=Math.floor((Math.random()*this.width)); 
 			var y=Math.floor((Math.random()*this.height)); 
 			if(this.getActor(x,y,this.player)===null){
-				var radius = 6;
+				var radius = 5;
 				var velocity = new Pair(rand(20), rand(20));
 				var alpha = Math.random();
 				var colour= 'rgba(255,0,0,1)';
