@@ -222,7 +222,7 @@ function leaderBoard(type){
 		contentType: "application/json; charset=utf-8",
 		dataType:"json"
 	}).done(function(data, text_status, jqXHR){
-		var scores = data.array;
+		var lb = data.array;
                 //alert(type);
                 if (type=="leaderBoardEasy"){
                         var leaderboard = document.getElementById("leaderBoardEasy");
@@ -245,7 +245,7 @@ function leaderBoard(type){
                 row.appendChild(title);
                 leaderboard.appendChild(row);
 
-                for(let i=0; i<scores.length; i++) {
+                for(let i=0; i<10; i++) {
                         var rank = document.createElement("td");
                         var name = document.createElement("td");
                         var score = document.createElement("td");
@@ -255,8 +255,10 @@ function leaderBoard(type){
                         score.classList.add("score");
                         row.classList.add("row");
                         rank.innerText = i+1;
-                        name.innerText = scores[i][0];
-                        score.innerText = scores[i][1];
+                        if (i<lb.length){
+                                name.innerText = lb[i][0];
+                                score.innerText = lb[i][1];
+                        }
 
                         row.appendChild(rank);
                         row.appendChild(name);
