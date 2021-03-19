@@ -17,11 +17,11 @@
 		<div id="ui_nav">
 			<ul>
                 <!-- Display navigation-->
-                <li> <input type="submit" id="play" value="Play"> </li>
-                <li> <input type="submit" id="instructions" value="Instructions"> </li>
-                <li> <input type="submit" id="stats" value="Stats"> </li>
-                <li> <input type="submit" id="profile" value="Profile"> </li>
-                <li> <input type="submit" id="logout" value="Logout"> </li>
+                <li> <input class="nav" type="submit" id="play" value="Play"> </li>
+                <li> <input class="nav" type="submit" id="instructions" value="Instructions"> </li>
+                <li> <input class="nav" type="submit" id="stats" value="Stats"> </li>
+                <li> <input class="nav" type="submit" id="profile" value="Profile"> </li>
+                <li> <input class="nav" type="submit" id="logout" value="Logout"> </li>
             </ul>
 		</div>
 		<div id="ui_login">
@@ -47,10 +47,10 @@
 				<input type="password" class="reg" id="r-repassword" placeholder="Confirm Password"/>
 				<br>
 
-				<label for="r-difficulty">Difficulty:</label>
-                <label><input type="radio" name="r-difficulty" value="easy" checked/>Easy</label>
-                <label><input type="radio" name="r-difficulty" value="medium"/>Medium</label>
-                <label><input type="radio" name="r-difficulty" value="hard"/>Hard</label>
+				<label for="r-gender">Gender:</label>
+                <label><input type="radio" name="r-gender" value="male" checked/>Male</label>
+                <label><input type="radio" name="r-gender" value="female"/>Female</label>
+                <label><input type="radio" name="r-gender" value="other"/>Other</label>
 				<br>
 
 				<!-- Drop box selector -->
@@ -75,9 +75,9 @@
 		</div>
 		<div class="page" id="ui_stats">
 			<legend>Game Stats</legend>
-				<p id="playtimes"></p>
-				<p id="total"></p>
-				<p id="highest"></p>
+				<p id="easy"></p>
+				<p id="intermediate"></p>
+				<p id="hard"></p>
 		</div>
 		<div class="page" id="ui_profile">
 			<legend>Profile</legend>
@@ -93,10 +93,10 @@
 				<input type="password" class="pro" id="p-repassword"/>
 				<br>
 
-				<label for="p-difficulty">Difficulty:</label>
-                <label><input type="radio" name="p-difficulty" value="easy"/>Easy</label>
-                <label><input type="radio" name="p-difficulty" value="medium"/>Medium</label>
-                <label><input type="radio" name="p-difficulty" value="hard"/>Hard</label>
+				<label for="p-gender">Gender:</label>
+                <label><input type="radio" name="p-gender" value="male"/>Male</label>
+                <label><input type="radio" name="p-gender" value="female"/>Female</label>
+                <label><input type="radio" name="p-gender" value="other"/>Other</label>
 				<br>
 
 				<!-- Drop box selector -->
@@ -115,10 +115,26 @@
 				<input type="submit" id="update" value="Update">
 				<input type="submit" id="delete" value="Delete">
 		</div>
+		<div id="ui_leaderBoardEasy">
+
+		</div>
+		<div id="ui_leaderBoardInter">
+			
+		</div>
+		<div id="ui_leaderBoardHard">
+			
+		</div>
 		<div class="page" id="ui_play">
 			<center>
 				<canvas id="stage" width="800" height="800" style="border:1px solid black;"> </canvas>
 			</center>
+			<br>
+			<input type="submit" id="restart" value="Restart">
+			<br>
+			<label for="difficulty">Difficulty:</label>
+            <label><input type="radio" name="difficulty" value="easy" checked/>Easy</label>
+            <label><input type="radio" name="difficulty" value="intermediate"/>Intermediate</label>
+            <label><input type="radio" name="difficulty" value="hard"/>Hard</label>
 		</div>
 	</body>
 </html>

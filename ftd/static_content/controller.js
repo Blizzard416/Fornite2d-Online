@@ -3,6 +3,7 @@ var view = null;
 var interval=null;
 var credentials={ "username": "", "password":"" };
 var keys = {'w': false,'a':false,'s':false,'d':false, 'p':false, 'c':false};
+var leaderBoardList = ["leaderBoardEasy", "leaderBoardInter", "leaderBoardHard"];
 function setupGame(){
 	stage=new Stage(document.getElementById('stage'), 50, 10, 50, 5);
 
@@ -80,8 +81,13 @@ function login(){
                 console.log(jqXHR.status+" "+text_status+JSON.stringify(data));
 
         	$("#ui_login").hide();
+                lbDisplay(false);
+                $("#ui_leaderBoardEasy").hide();
+                $("#ui_leaderBoardInter").hide();
+                $("#ui_leaderBoardHard").hide();
         	$("#ui_play").show();
                 $("#ui_nav").show();
+                navHelper("#play");
 		setupGame();
 		startGame();
 
@@ -96,7 +102,7 @@ function register(){
                 "username": $("#r-username").val(),
                 "password": $("#r-password").val(),
                 "repassword": $("#r-repassword").val(),
-                "difficulty": $("input[name='r-difficulty']:checked").val(),
+                "gender": $("input[name='r-gender']:checked").val(),
                 "country": $("#r-country").val(),
                 "email": $("#r-email").val()
         }
@@ -109,6 +115,7 @@ function register(){
 		dataType:"json"
 	}).done(function(data, text_status, jqXHR){
 		$("#ui_login").show();
+                lbDisplay(true);
                 $("#ui_register").hide();
 	}).fail(function(err){
                 alert(err.responseJSON.error);
@@ -126,6 +133,7 @@ function play(){
                 dataType:"json"
         }).done(function(data, text_status, jqXHR){
         	startGame();
+                navHelper("#play");
                 $(".page").hide();
                 $("#ui_play").show();
         }).fail(function(err){
@@ -144,6 +152,7 @@ function instruction(){
                 dataType:"json"
         }).done(function(data, text_status, jqXHR){
         	pauseGame();
+                navHelper("#instructions");
                 $(".page").hide();
                 $("#ui_instruction").show();
         }).fail(function(err){
@@ -161,9 +170,10 @@ function stats(){
                 contentType: "application/json; charset=utf-8",
                 dataType:"json"
         }).done(function(data, text_status, jqXHR){
-                document.getElementById('playtimes').innerHTML="You played this game " + data.playtimes + " times";
-                document.getElementById('total').innerHTML="You total kill is " + data.total;
-                document.getElementById('highest').innerHTML="You highest kill is " + data.highest;
+                document.getElementById('easy').innerHTML="Your highest kills for easy mode is " + data.easy;
+                document.getElementById('intermediate').innerHTML="Your highest kills for intermediate mode is " + data.intermediate;
+                document.getElementById('hard').innerHTML="Your highest kills for hard mode is " + data.hard;
+                navHelper("#stats");
         	pauseGame();
                 $(".page").hide();
                 $("#ui_stats").show();
@@ -186,9 +196,10 @@ function profile(){
                 document.getElementById('p-username').innerHTML=credentials.username;
                 $("#p-password").val(credentials.password);
                 $("#p-repassword").val(credentials.password);
-                $('#ui_profile').find(`:radio[name=p-difficulty][value=${data.difficulty}]`).prop('checked', true);
+                $('#ui_profile').find(`:radio[name=p-gender][value=${data.gender}]`).prop('checked', true);
                 $("#p-country").val(data.country);
                 $("#p-email").val(data.email);
+                navHelper("#profile");
         	pauseGame();
                 $(".page").hide();
                 $("#ui_profile").show();
@@ -198,11 +209,54 @@ function profile(){
         });
 }
 
+function leaderBoard(type){
+        $.ajax({ 
+	        method: "GET", 
+		url: "/api/"+type,
+		data: JSON.stringify({}),
+		processData:false, 
+		contentType: "application/json; charset=utf-8",
+		dataType:"json"
+	}).done(function(data, text_status, jqXHR){
+		let scores = data.array;
+
+                let leaderboard = document.getElementById("ui_leaderBoardEasy");
+                leaderboard.innerHTML = "";
+
+                let elements = []; // we'll need created elements to update colors later on
+                // create elements for each player
+                for(let i=0; i<scores.length; i++) {
+                        let name = document.createElement("div");
+                        let score = document.createElement("div");
+                        name.classList.add("name");
+                        score.classList.add("score");
+                        name.innerText = scores[i][0];
+                        score.innerText = scores[i][1];
+
+                        let scoreRow = document.createElement("div");
+                        scoreRow.classList.add("row");
+                        scoreRow.appendChild(name);
+                        scoreRow.appendChild(score);
+                        leaderboard.appendChild(scoreRow);
+
+                        elements.push(scoreRow);
+
+                }
+
+                let colors = ["gold", "silver", "#cd7f32"];
+                for(let i=0; i < 3; i++) {
+                        elements[i].style.color = colors[i];
+                }
+	}).fail(function(err){
+                alert(err.responseJSON.error);
+	});
+}
+
 function updateUser() {
         var user = {
                 "password": $("#p-password").val(),
                 "repassword": $("#p-repassword").val(),
-                "difficulty": $("input[name='p-difficulty']:checked").val(),
+                "gender": $("input[name='p-gender']:checked").val(),
                 "country": $("#p-country").val(),
                 "email": $("#p-email").val()
         }
@@ -237,6 +291,22 @@ function deleteUser() {
         });
 }
 
+function restart(difficulty) {
+        setupGame();
+	startGame();
+}
+
+$("input[name='difficulty']").change(function(){
+        restart($("input[name='difficulty']:checked").val());
+});
+
+function navHelper(id) {
+        $(".nav").css("background-color", "white");
+        $(".nav").css("color", "black");
+        $(id).css("background-color", "green");
+        $(id).css("color", "white");
+}
+
 function logout(){
         pauseGame();
         $("#username").val("");
@@ -245,41 +315,21 @@ function logout(){
         $(".page").hide();
         $("#ui_nav").hide();
         $("#ui_login").show();
+        lbDisplay(true);
 }
-/**
-function logout(){
-        $.ajax({
-                method: "POST",
-                url: "/api/auth/logout",
-                data: JSON.stringify({}),
-		headers: { "Authorization": "Basic " + btoa(credentials.username + ":" + credentials.password) },
-                processData:false,
-                contentType: "application/json; charset=utf-8",
-                dataType:"json"
-        }).done(function(data, text_status, jqXHR){
-        	pauseGame();
-                $("#username").val("");
-                $("#password").val("");
-                $(".login").css("border-color", "black");
-                $(".page").hide();
-                $("#ui_nav").hide();
-                $("#ui_login").show();
-        }).fail(function(err){
-                document.getElementById('login-err').innerHTML=err.responseJSON.error;
-                console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
-        });
-}
-*/
+
 function toRegister() {
         $(".reg").val("");
         $(".reg").css("border-color", "black");
         $("#ui_login").hide();
+        lbDisplay(false);
         $("#ui_register").show();
 }
 
 function toLogin() {
         $(".login").css("border-color", "black");
         $("#ui_login").show();
+        lbDisplay(true);
         $("#ui_register").hide();
 }
 
@@ -341,6 +391,17 @@ function Validation(isReg){
         }
 }
 
+function lbDisplay(show) {
+        for (type in leaderBoardList) {
+                if (show) {
+                        leaderBoard(type);
+                        $("#ui_"+type).show();
+                } else {
+                        $("#ui_"+type).hide();
+                }
+        }
+}
+
 $(function(){
         // Setup all events here and display the appropriate UI
         $("#login").on('click',function(){ loginValidation(); });
@@ -354,7 +415,9 @@ $(function(){
         $("#profile").on('click',function(){ profile(); });
         $("#update").on('click',function(){ Validation(false); });
         $("#delete").on('click',function(){ deleteUser(); });
+        $("#restart").on('click',function(){ restart(null); });
         $("#ui_login").show();
+        lbDisplay(true);
         $("#ui_register").hide();
         $("#ui_nav").hide();
         $(".page").hide();

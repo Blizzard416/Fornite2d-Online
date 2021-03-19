@@ -27,7 +27,7 @@ app.use(bodyParser.json());
 app.use('/api/register', function (req, res,next) {
 	var emailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
-	if (!"username" in req.body || !"password" in req.body || !"repassword" in req.body || !"difficulty" in req.body || !"country" in req.body || !"email" in req.body) {
+	if (!"username" in req.body || !"password" in req.body || !"repassword" in req.body || !"gender" in req.body || !"country" in req.body || !"email" in req.body) {
 		return res.status(400).json({"error":'Missing required input'});
 	}
 	if(req.body.password!=req.body.repassword){
@@ -38,8 +38,8 @@ app.use('/api/register', function (req, res,next) {
 		return res.status(400).json({"error":'Password and confirm password are not identical'});
 	}
 	
-	let sql = 'INSERT INTO ftduser(username, password, difficulty, country, email) VALUES ($1,sha512($2),$3,$4,$5);';
-		pool.query(sql, [req.body.username, req.body.password, req.body.difficulty, req.body.country, req.body.email], (err, pgRes) => {
+	let sql = 'INSERT INTO ftduser(username, password, gender, country, email) VALUES ($1,sha512($2),$3,$4,$5);';
+		pool.query(sql, [req.body.username, req.body.password, req.body.gender, req.body.country, req.body.email], (err, pgRes) => {
 		if(err && err.code==23505){ // pg duplicate key error
 			res.status(409);
 			res.json({"error":`Username ${req.body.username} is already in database`});
@@ -61,7 +61,7 @@ app.use('/api/register', function (req, res,next) {
 });
 
 app.post('/api/register/init', function (req, res) {
-	let sql = 'INSERT INTO stats(username, playtimes, highestScore, totalScore) VALUES ($1, 0, 0, 0);';
+	let sql = 'INSERT INTO stats(username, easyHighest, interHighest, hardHighest) VALUES ($1, 0, 0, 0);';
 		pool.query(sql, [req.body.username], (err, pgRes) => {
 		if (err) {
 			console.log(req.body.username);
@@ -78,6 +78,33 @@ app.post('/api/register/init', function (req, res) {
 			res.json({"error":`couldn't initialize ${req.body.username}`});
 			return;
 		}
+	});
+});
+
+app.get('/api/:leaderBoardType', function (req, res) {
+	var type = req.params.leaderBoardType, score;
+	let sql;
+	if (type=="leaderBoardEasy") {
+		sql = 'SELECT username, easyhighest AS score FROM stats ORDER BY easyhighest DESC LIMIT 10;';
+	} else if (type=="leaderBoardInter") {
+		sql = 'SELECT username, interhighest AS score FROM stats ORDER BY interhighest DESC LIMIT 10;';
+	} else {
+		sql = 'SELECT username, hardhighest AS score FROM stats ORDER BY hardhighest DESC LIMIT 10;';
+	}
+
+		pool.query(sql, [], (err, pgRes) => {
+		if (err) {
+			res.status(500);
+			res.json({"error":err.message});
+			return;
+		} 
+		var response=[];
+		res.status(200);
+		for(let i=0; i<pgRes.rowCount; i++) {
+			response.push([pgRes.rows[i].username, pgRes.rows[i].score]);
+		}
+		console.log(response);
+		res.json({"array": response}); 
 	});
 });
 
@@ -152,7 +179,7 @@ app.get('/api/auth/stats/:username', function (req, res) {
 		} 
 		if(pgRes.rowCount == 1){
 			res.status(200);
-			res.json({"playtimes":pgRes.rows[0].playtimes, "highest":pgRes.rows[0].highestscore, "total":pgRes.rows[0].totalscore}); 
+			res.json({"easy":pgRes.rows[0].easyhighest, "intermediate":pgRes.rows[0].interhighest, "hard":pgRes.rows[0].hardhighest}); 
 			return;
 		} else {
 			res.status(500);
@@ -174,7 +201,7 @@ app.get('/api/auth/profile/:username', function (req, res) {
 		} 
 		if(pgRes.rowCount == 1){
 			res.status(200);
-			res.json({"difficulty":pgRes.rows[0].difficulty, "country":pgRes.rows[0].country, "email":pgRes.rows[0].email}); 
+			res.json({"gender":pgRes.rows[0].gender, "country":pgRes.rows[0].country, "email":pgRes.rows[0].email}); 
 			return;
 		} else {
 			res.status(500);
@@ -188,7 +215,7 @@ app.put('/api/auth/profile/:username', function (req, res) {
 	var userName = req.params.username;
 	var emailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
-	if (!"password" in req.body || !"repassword" in req.body || !"difficulty" in req.body || !"country" in req.body || !"email" in req.body) {
+	if (!"password" in req.body || !"repassword" in req.body || !"gender" in req.body || !"country" in req.body || !"email" in req.body) {
 		return res.status(400).json({"error":'Missing required input'});
 	}
 	if(req.body.password!=req.body.repassword){
@@ -199,8 +226,8 @@ app.put('/api/auth/profile/:username', function (req, res) {
 		return res.status(400).json({"error":'Password and confirm password are not identical'});
 	}
 	
-	let sql = 'UPDATE ftduser SET password=sha512($2), difficulty=$3, country=$4, email=$5 WHERE username=$1;';
-	pool.query(sql, [userName, req.body.password, req.body.difficulty, req.body.country, req.body.email], (err, pgRes) => {
+	let sql = 'UPDATE ftduser SET password=sha512($2), gender=$3, country=$4, email=$5 WHERE username=$1;';
+	pool.query(sql, [userName, req.body.password, req.body.gender, req.body.country, req.body.email], (err, pgRes) => {
 		if (err) {
 			res.status(500);
 			res.json({"error":err.message});
@@ -240,12 +267,6 @@ app.delete('/api/auth/profile/:username', function (req, res) {
 	});
 });
 
-/** 
-app.post('/api/auth/logout', function (req, res) {
-	res.status(200); 
-	res.json({"message":"authentication success"}); 
-});
-*/
 app.use('/',express.static('static_content')); 
 
 app.listen(port, function () {
