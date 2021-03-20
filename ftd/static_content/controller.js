@@ -13,7 +13,7 @@ function setupGame(){
         } else if (difficulty=="intermediate") {
                 stage=new Stage(document.getElementById('stage'), 30, 15, 50, 10);
         } else {
-                stage=new Stage(document.getElementById('stage'), 40, 20, 30, 5);
+                stage=new Stage(document.getElementById('stage'), 40, 20, 20, 5);
         }
 
 	document.addEventListener('keydown', moveByKey);
