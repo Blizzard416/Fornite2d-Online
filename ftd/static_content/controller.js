@@ -5,6 +5,8 @@ var credentials={ "username": "", "password":"" };
 var keys = {'w': false,'a':false,'s':false,'d':false, 'p':false, 'c':false};
 var leaderBoardList = ["leaderBoardEasy", "leaderBoardInter", "leaderBoardHard"];
 var difficulty;
+
+//setup a stage class accoring to the selected difficulty.
 function setupGame(){
 	if (difficulty=="easy"){
                 stage=new Stage(document.getElementById('stage'), 20, 10, 70, 15);
@@ -20,9 +22,12 @@ function setupGame(){
         document.addEventListener('mousedown', Fire);
         document.addEventListener('mouseup', mouseup);
 }
+
+//draw each frame repeatly
 function startGame(){
 	interval=setInterval(function(){
                         stage.step();
+                        //if the game end.
                         if(stage.isEnd||stage.isWin){
                                 endGame();
                                 return;
@@ -30,12 +35,15 @@ function startGame(){
                         stage.draw(); 
                 },70);
 }
+
+//stop drawing
 function pauseGame(){
 	clearInterval(interval);
 	interval=null;
         if(!stage.isEnd&&!stage.isWin)stage.Pause();
 }
 
+//Game end function. If the game ended, display proper information
 function endGame(){
         pauseGame();
         if(stage.isEnd){
@@ -46,6 +54,7 @@ function endGame(){
         updateScore(stage.player.kills);
 }
 
+//eventhandler for keys
 function moveByKey(event){
         var x = y = 0;
 	var e = event.key;
@@ -57,17 +66,20 @@ function moveByKey(event){
         if(keys['a']) x -= 10;
         if(keys['s']) y += 10;
         if(keys['d']) x += 10;
-
 	stage.player.velocity=new Pair(x,y);
 }
 
+//eventhandler for mousemove
 function mouseFollow(event){
+        //get the x,y offset of the canvas and calculate the mouse position reletaed to the (o,o) on canvas
+        //because the event.x,y coordinates are based on the windows not the canvas
         var offsetx = document.getElementById('stage').offsetLeft + document.getElementById('stage').width/2;
         var offsety = document.getElementById('stage').offsetTop + document.getElementById('stage').height/2;
         stage.player.pointer = new Pair(event.x - offsetx , event.y - offsety);
         console.log(event.x, event.y, offsetx, offsety);
 }
 
+//eventhandler for mousedown, start shooting
 function Fire(event){
         timeout = setInterval(function () {
                         if(stage.player.ammo > 0){
@@ -82,6 +94,7 @@ function Fire(event){
         }, stage.player.firerate);         
 }
 
+//eventhandler for mousedown, stop shooting
 function mouseup(event){
         clearInterval(timeout);       
 }
