@@ -85,12 +85,14 @@ function Fire(event){
 function mouseup(event){
         clearInterval(timeout);       
 }
+
+// Rest login post request
 function login(){
 	credentials =  { 
 		"username": $("#username").val(), 
 		"password": $("#password").val() 
 	};
-
+        // Post request with Authorization in header
         $.ajax({
                 method: "POST",
                 url: "/api/auth/login",
@@ -99,9 +101,8 @@ function login(){
                 processData:false,
                 contentType: "application/json; charset=utf-8",
                 dataType:"json"
+        // Go to play page, set difficulty and show/hide ui
         }).done(function(data, text_status, jqXHR){
-                console.log(jqXHR.status+" "+text_status+JSON.stringify(data));
-
         	$("#ui_login").hide();
                 lbDisplay(false);
         	$("#ui_play").show();
@@ -110,14 +111,15 @@ function login(){
                 difficulty="easy";
 		setupGame();
 		startGame();
-
+        // Display error message
         }).fail(function(err){
                 alert(err.responseJSON.error);
-                console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
         });
 }
 
+// Rest register post request
 function register(){
+        // User JSON object
         var user = {
                 "username": $("#r-username").val(),
                 "password": $("#r-password").val(),
@@ -126,6 +128,7 @@ function register(){
                 "country": $("#r-country").val(),
                 "email": $("#r-email").val()
         }
+        // Post request with user information
         $.ajax({ 
 	        method: "POST", 
 		url: "/api/register/init",
@@ -133,16 +136,20 @@ function register(){
 		processData:false, 
 		contentType: "application/json; charset=utf-8",
 		dataType:"json"
+        // Go back to login page
 	}).done(function(data, text_status, jqXHR){
 		$("#ui_login").show();
                 lbDisplay(true);
                 $("#ui_register").hide();
+        // Display error message
 	}).fail(function(err){
                 alert(err.responseJSON.error);
 	});
 }
 
+// Rest play get request
 function play(){
+        // Get request with credentials
         $.ajax({
                 method: "GET",
                 url: "/api/auth/play",
@@ -151,16 +158,20 @@ function play(){
                 processData:false,
                 contentType: "application/json; charset=utf-8",
                 dataType:"json"
+        // Display the play page
         }).done(function(data, text_status, jqXHR){
                 navHelper("#play");
                 $(".page").hide();
                 $("#ui_play").show();
+        // Display error message
         }).fail(function(err){
                 alert(err.responseJSON.error);
         });
 }
 
+// Rest instruction get request
 function instruction(){
+        // Get request with credentials
         $.ajax({
                 method: "GET",
                 url: "/api/auth/instruction",
@@ -169,17 +180,21 @@ function instruction(){
                 processData:false,
                 contentType: "application/json; charset=utf-8",
                 dataType:"json"
+        // Display instruction page
         }).done(function(data, text_status, jqXHR){
         	pauseGame();
                 navHelper("#instructions");
                 $(".page").hide();
                 $("#ui_instruction").show();
+        // Display error message
         }).fail(function(err){
                 alert(err.responseJSON.error);
         });
 }
 
+// Rest stats get request
 function stats(){
+        // Get request with credentials
         $.ajax({
                 method: "GET",
                 url: "/api/auth/stats/"+credentials.username,
@@ -188,6 +203,7 @@ function stats(){
                 processData:false,
                 contentType: "application/json; charset=utf-8",
                 dataType:"json"
+        // Retrieve the data from database and display the stats page
         }).done(function(data, text_status, jqXHR){
                 document.getElementById('easy').innerHTML="Your highest kills for easy mode is " + data.easy;
                 document.getElementById('intermediate').innerHTML="Your highest kills for intermediate mode is " + data.intermediate;
@@ -196,12 +212,15 @@ function stats(){
         	pauseGame();
                 $(".page").hide();
                 $("#ui_stats").show();
+        // Display error message
         }).fail(function(err){
                 alert(err.responseJSON.error);
         });
 }
 
+// Rest profile get request
 function profile(){
+        // Get request with credentials
         $.ajax({
                 method: "GET",
                 url: "/api/auth/profile/"+credentials.username,
@@ -210,6 +229,7 @@ function profile(){
                 processData:false,
                 contentType: "application/json; charset=utf-8",
                 dataType:"json"
+        // Retrieve the user information from database and display the profile page
         }).done(function(data, text_status, jqXHR){
                 document.getElementById('p-username').innerHTML=credentials.username;
                 $("#p-password").val(credentials.password);
@@ -221,13 +241,15 @@ function profile(){
         	pauseGame();
                 $(".page").hide();
                 $("#ui_profile").show();
+        // Display error message
         }).fail(function(err){
-                console.log("fail "+err.status+" "+JSON.stringify(err.responseJSON));
                 alert(err.responseJSON.error);
         });
 }
 
+// Rest leaderBoard get request
 function leaderBoard(type){
+        // Get request with specific type of leaderboard
         $.ajax({ 
 	        method: "GET", 
 		url: "/api/leaderBoard/"+type,
@@ -235,9 +257,10 @@ function leaderBoard(type){
 		processData:false, 
 		contentType: "application/json; charset=utf-8",
 		dataType:"json"
+        // Display the leaderBoard
 	}).done(function(data, text_status, jqXHR){
 		var lb = data.array;
-                //alert(type);
+                // Identify the leaderboard type
                 if (type=="leaderBoardEasy"){
                         var leaderboard = document.getElementById("leaderBoardEasy");
                 } else if (type=="leaderBoardInter") {
@@ -247,6 +270,7 @@ function leaderBoard(type){
                 }
                 leaderboard.innerHTML = "";
 
+                // Setup the table header
                 var row = document.createElement("tr");
                 var title = document.createElement("th");
                 title.innerText="TOP";
@@ -259,6 +283,7 @@ function leaderBoard(type){
                 row.appendChild(title);
                 leaderboard.appendChild(row);
 
+                // Display the player name and kills
                 for(let i=0; i<10; i++) {
                         var rank = document.createElement("td");
                         var name = document.createElement("td");
@@ -278,14 +303,16 @@ function leaderBoard(type){
                         row.appendChild(name);
                         row.appendChild(score);
                         leaderboard.appendChild(row);
-
                 }
+        // Display error message
 	}).fail(function(err){
                 alert(err.responseJSON.error);
 	});
 }
 
+// Rest user information put request
 function updateUser() {
+        // Prepare user JSON
         var user = {
                 "password": $("#p-password").val(),
                 "repassword": $("#p-repassword").val(),
@@ -293,6 +320,7 @@ function updateUser() {
                 "country": $("#p-country").val(),
                 "email": $("#p-email").val()
         }
+        // Put request with uer JSON and credential
         $.ajax({ 
 	        method: "PUT", 
 		url: "/api/auth/profile/"+credentials.username,
@@ -301,14 +329,18 @@ function updateUser() {
 		processData:false, 
 		contentType: "application/json; charset=utf-8",
 		dataType:"json"
+        // Update the new password to credential
 	}).done(function(data, text_status, jqXHR){
 		credentials.password=data.password;
+        // Display error message
 	}).fail(function(err){
                 alert(err.responseJSON.error);
 	});
 }
 
+// Rest delete user delete request
 function deleteUser() {
+        // Delete request with credential
         $.ajax({
                 method: "DELETE",
                 url: "/api/auth/profile/"+credentials.username,
@@ -317,19 +349,24 @@ function deleteUser() {
                 processData:false,
                 contentType: "application/json; charset=utf-8",
                 dataType:"json"
+        // User feedback and logout
         }).done(function(data, text_status, jqXHR){
                 alert("You delete you account :(");
                 logout();
+        // Display error message
         }).fail(function(err){
                 alert(err.responseJSON.error);
         });
 }
 
+// Rest update user score put request
 function updateScore(score) {
+        // Prepare score JSON object
         var newScore = {
                 "difficulty": difficulty,
                 "score": score
         }
+        // Put request with credential
         $.ajax({ 
 	        method: "PUT", 
 		url: "/api/auth/updateScore/"+credentials.username,
@@ -339,17 +376,20 @@ function updateScore(score) {
 		contentType: "application/json; charset=utf-8",
 		dataType:"json"
 	}).done(function(data, text_status, jqXHR){
+        // Display error message
 	}).fail(function(err){
                 alert(err.responseJSON.error);
 	});
 }
 
+// Helper function to restart the game
 function restart() {
         pauseGame();
         setupGame();
 	startGame();
 }
 
+// User feedback on current page
 function navHelper(id) {
         $(".nav").css("background-color", "white");
         $(".nav").css("color", "black");
@@ -357,6 +397,7 @@ function navHelper(id) {
         $(id).css("color", "white");
 }
 
+// Logout to login page
 function logout(){
         pauseGame();
         $("#username").val("");
@@ -368,6 +409,7 @@ function logout(){
         lbDisplay(true);
 }
 
+// Login to register page
 function toRegister() {
         $(".reg").val("");
         $(".reg").css("border-color", "black");
@@ -376,6 +418,7 @@ function toRegister() {
         $("#ui_register").show();
 }
 
+// Register to login page
 function toLogin() {
         $(".login").css("border-color", "black");
         $("#ui_login").show();
@@ -383,6 +426,7 @@ function toLogin() {
         $("#ui_register").hide();
 }
 
+// Check empty for all login input
 function loginValidation(){
         $(".login").css("border-color", "black");
         if ($("#username").val()=="") {
@@ -396,6 +440,7 @@ function loginValidation(){
         }
 }
 
+// Check valid input for profile and register page
 function Validation(isReg){
         var emailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
         var username, password, repassword, email;
@@ -413,6 +458,7 @@ function Validation(isReg){
                 $(".pro").css("border-color", "black");
         }
 
+        // Check empty input
         if ($(username).val()=="" && isReg) {
                 alert("Username must be filled out");
                 $(username).css("border-color", "red");
@@ -425,10 +471,12 @@ function Validation(isReg){
         } else if ($(email).val()==""){
                 alert("Email must be filled out");
                 $(email).css("border-color", "red");
+        // Check identical password
         } else if ($(password).val()!=$(repassword).val()){
                 alert("Passwords are not identical");
                 $(password).css("border-color", "red");
                 $(repassword).css("border-color", "red");
+        // Check valid email format
         } else if (!$(email).val().match(emailformat)){
                 alert("Please enter valid email");
                 $(email).css("border-color", "red");
@@ -441,6 +489,7 @@ function Validation(isReg){
         }
 }
 
+// LeaderBoard display
 function lbDisplay(show) {
         if (show) {
                 for (i in leaderBoardList) {
@@ -466,6 +515,7 @@ $(function(){
         $("#update").on('click',function(){ Validation(false); });
         $("#delete").on('click',function(){ deleteUser(); });
         $("#restart").on('click',function(){ restart(); });
+        // Change difficulty radio button
         $("input[name='difficulty']").on('change', function(){
                 difficulty=$("input[name='difficulty']:checked").val();
                 restart();

@@ -122,7 +122,6 @@ input[type=text], input[type=password], input[type=email], input[type=password]{
     display: inline-block;
     width: 100%;
     padding: 10px 0px;
-    border: none;
     background: #e4e4e4;
 }
 
