@@ -1,4 +1,5 @@
 var port = 8000; 
+var webSocketPort = port+1;
 var express = require('express');
 var app = express();
 
@@ -370,3 +371,30 @@ app.listen(port, function () {
   	console.log('Example app listening on port '+port);
 });
 
+var WebSocketServer = require('ws').Server
+   ,wss = new WebSocketServer({port: webSocketPort});
+
+var messages=[];
+
+wss.on('close', function() {
+    console.log('disconnected');
+});
+
+wss.broadcast = function(message){
+	for(let ws of this.clients){ 
+		ws.send(message); 
+	}
+}
+
+wss.on('connection', function(ws) {
+	var i;
+	for(i=0;i<messages.length;i++){
+		ws.send(messages[i]);
+	}
+	ws.on('message', function(message) {
+		console.log(message);
+		// ws.send(message); 
+		wss.broadcast(message);
+		messages.push(message);
+	});
+});

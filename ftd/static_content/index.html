@@ -7,6 +7,7 @@
 		<link rel="stylesheet" type="text/css" href="style.css" />
 		<script language="javascript" src="model.js" > </script>
 		<script language="javascript" src="controller.js" > </script>
+		<script language="javascript" src="echoClient.js" > </script>
 		<style>
 			#ui_login { display:block; }
 			#ui_play { display:none; }
@@ -164,6 +165,10 @@
             <label><input type="radio" name="difficulty" value="easy" checked/>Easy</label>
             <label><input type="radio" name="difficulty" value="intermediate"/>Intermediate</label>
             <label><input type="radio" name="difficulty" value="hard"/>Hard</label>
+			<form> 
+				<input type="text" id="message" /><input type="button" id="sendButton" value="send" disabled='disabled' onclick="send();" />
+			</form>
+			<div id="messages" style="border:1px solid black; width:100%; height:100px; overflow: auto;" ></div>
 		</div>
 		<br>
 		<footer>
