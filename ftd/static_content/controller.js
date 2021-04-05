@@ -5,6 +5,51 @@ var credentials={ "username": "", "password":"" };
 var keys = {'w': false,'a':false,'s':false,'d':false, 'p':false, 'c':false};
 var leaderBoardList = ["leaderBoardEasy", "leaderBoardInter", "leaderBoardHard"];
 var difficulty;
+var socket;
+
+$(function(){
+        // Setup all events here and display the appropriate UI
+        $("#login").on('click',function(){ loginValidation(); });
+        $("#register").on('click',function(){ toRegister(); });
+        $("#back").on('click',function(){ toLogin(); });
+        $("#registerSubmit").on('click',function(){ Validation(true); });
+        $("#logout").on('click',function(){ logout(); });
+        $("#instructions").on('click',function(){ instruction(); });
+        $("#play").on('click',function(){ play(); });
+        $("#stats").on('click',function(){ stats(); });
+        $("#profile").on('click',function(){ profile(); });
+        $("#update").on('click',function(){ Validation(false); });
+        $("#delete").on('click',function(){ deleteUser(); });
+        $("#restart").on('click',function(){ restart(); });
+        // Change difficulty radio button
+        $("input[name='difficulty']").on('change', function(){
+                difficulty=$("input[name='difficulty']:checked").val();
+                restart();
+        });
+        $("#ui_login").show();
+        lbDisplay(true);
+        $("#ui_register").hide();
+        $("#ui_nav").hide();
+        $(".page").hide();
+
+
+        socket = new WebSocket(`ws://${window.location.hostname}:8001`);
+	socket.onopen = function (event) {
+		$('#sendButton').removeAttr('disabled');
+		console.log("connected");
+	};
+	socket.onclose = function (event) {
+		alert("closed code:" + event.code + " reason:" +event.reason + " wasClean:"+event.wasClean);
+	};
+	socket.onmessage = function (event) {
+		$('#messages').append("<br/>"+event.data);
+	}
+});
+
+function send(){
+	socket.send($('#message').val());
+	$('#message').val("");
+}
 
 //setup a stage class accoring to the selected difficulty.
 function setupGame(){
@@ -514,28 +559,3 @@ function lbDisplay(show) {
         }
 }
 
-$(function(){
-        // Setup all events here and display the appropriate UI
-        $("#login").on('click',function(){ loginValidation(); });
-        $("#register").on('click',function(){ toRegister(); });
-        $("#back").on('click',function(){ toLogin(); });
-        $("#registerSubmit").on('click',function(){ Validation(true); });
-        $("#logout").on('click',function(){ logout(); });
-        $("#instructions").on('click',function(){ instruction(); });
-        $("#play").on('click',function(){ play(); });
-        $("#stats").on('click',function(){ stats(); });
-        $("#profile").on('click',function(){ profile(); });
-        $("#update").on('click',function(){ Validation(false); });
-        $("#delete").on('click',function(){ deleteUser(); });
-        $("#restart").on('click',function(){ restart(); });
-        // Change difficulty radio button
-        $("input[name='difficulty']").on('change', function(){
-                difficulty=$("input[name='difficulty']:checked").val();
-                restart();
-        });
-        $("#ui_login").show();
-        lbDisplay(true);
-        $("#ui_register").hide();
-        $("#ui_nav").hide();
-        $(".page").hide();
-});
