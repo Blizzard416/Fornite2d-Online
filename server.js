@@ -9,6 +9,7 @@ const Stats = require("./models/stats");
 
 const app = express();
 
+//websocket inialization
 var webSocketPort = 8001;
 var model = require('./src/model');
 var WebSocketServer = require('ws').Server
@@ -248,61 +249,67 @@ app.delete('/api/auth/profile/:username', (req, res) => {
     });
 });
 
-function updateScore(userName, kills){
-    Stats.findOne({username: userName}, (err, user) => {
-        if (err) alert(err);
-        if (!user) alert("User not found");
-        if (user.mostKills < kills) {
-			Stats.updateOne({username: userName}, {mostKills: kills});
-		}
-	})
-}
-
 // Setup a port
 const port = process.env.PORT || 8080;
 app.listen(port, ()=>console.log(`Server running on port ${port}`));
 
 
-//==================================
+/*==================================
+        	WebSocket
+==================================*/
+
+//notification if wss is down.
 wss.on('close', function() {
-    console.log('disconnected');
+    console.log('wss closed');
 });
 
-wss.broadcast = function(message){
-	for(let ws of this.clients){ 
-		ws.send(message); 
-	}
-}
-
+//when a new client connect
 wss.on('connection', function(ws) {
 	console.log("new connection");
+	
+	//give client_id to the client
 	ws.id = "client" + client_id;
 	client_id ++;
+
+	//start the new game when the incomming client is the only player
+	//else add the new clients into the current game
 	connection+=1;
 	if(connection == 1){
-		stage = new model.Stage(20, 5, 70, 1);
+		//setup the game model
+		stage = new model.Stage(20, 5, 70, 10);
 		stage.addPlayer(ws.id);
+		//send the initial game to client and setup the game
+		wss.sendInitial();
 		setupGame();
 	}else{
 		if(state){
 			stage.addPlayer(ws.id);
+			wss.sendInitial();
 		}else{
-			ws.send(JSON.stringify(["wait"]));
+			ws.send(JSON.stringify({"game":{"status":"wait"}}));
 		}
 	}
 	
+	//if there is a message from the user
 	ws.on('message', function(msg) {
 		if(state && stage.player[ws.id]){
 			message = JSON.parse(msg);
+			//bind the uid to the client session
+			dict[ws.id] = message["player"];
+
+			//move operation, handle the request to the model. P.S. the message is in form of {"player": uid, "move": [x,y]}
 			if(Object.keys(message).includes("move")){
 				stage.player[ws.id].velocity = new model.Pair(message["move"][0],message["move"][1]);
 			}
+
+			//shot operation, setup the timer and pass it to the player model. 
+			//If message["fire"] is false, clean the timer. 
 			if(Object.keys(message).includes("fire")){
 				if(message["fire"]){
 					stage.player[ws.id].timeout = setInterval(function () {
-						if(stage.player[ws.id].ammo > 0){
+						if(stage.player[ws.id] && stage.player[ws.id].ammo > 0){
 								var angle = Math.atan2(stage.player[ws.id].pointer.y , stage.player[ws.id].pointer.x);
-								var velocity = new model.Pair(stage.player[ws.id].velocity.x/2 + Math.cos(angle)*15, stage.player[ws.id].velocity.y/2 + Math.sin(angle)*15);
+								var velocity = new model.Pair(stage.player[ws.id].velocity.x/2 + Math.cos(angle)*20, stage.player[ws.id].velocity.y/2 + Math.sin(angle)*20);
 								var colour= 'rgba(0,0,0,1)';
 								var position = new model.Pair(stage.player[ws.id].x, stage.player[ws.id].y);
 								var b = new model.Bullet(stage, position, velocity, colour, 2.5, false, true, false, stage.player[ws.id]);
@@ -314,29 +321,33 @@ wss.on('connection', function(ws) {
 					stage.stop(ws.id);
 				}
 			}
+
+			//request to change the pointer, change the direction of gun.
 			if(Object.keys(message).includes("offset")){
 				stage.player[ws.id].pointer = new model.Pair(message["offset"][0] , message["offset"][1]);
 			}
 		}
 	});
 
+	//handler for disconnected clients
 	ws.on('close', function() {
 		console.log("disconnected");
 		connection-=1;
 		stage.removePlayer(ws.id);
+		delete dict[ws.id];
 		if(connection < 1){
 			endGame();
 		}
 	});
 });
 
-//draw each frame repeatly
+//set up the update interval
+//change the game state to "open"
 function setupGame(){
 	state=true;
 	interval=setInterval(function(){
         stage.step();
-		sendUpdate();
-		sendNew();
+		wss.sendUpdate();
         if(stage.isEnd||stage.isWin){
             endGame();
             return;
@@ -344,55 +355,140 @@ function setupGame(){
     },70);
 }
 
-//Game end function. If the game ended, display proper information
+//Game end function. If the game ended, send proper information of win/wait screen to clients
+//Open a new game if needed
 function endGame(){
 	console.log("endGame");
 	state = false;
     clearInterval(interval);
 	interval=null;
-    //updateScore(stage.player.kills);
-	sendResult();
+	for(var id in dict){
+		updateScore(dict[id], stage.kills[id]);
+	}
+	wss.sendResult();
 	for(var key in stage.player) {
 		stage.stop(key);
 	}
+	dict = {};
 	setTimeout(function () {
 		if(connection>=1){
-			stage = new model.Stage(20, 1, 70, 1);
+			stage = new model.Stage(20, 5, 70, 10);
 			for(let ws of wss.clients){ 
 				stage.addPlayer(ws.id);
 			}
+			wss.sendInitial();
 			setupGame();
 		}
 	}, 1000);
 }
 
-function sendUpdate(){
+//helper to update the score for specific user
+function updateScore(userName, kills){
+    Stats.findOne({username: userName}, (err, user) => {
+        if (err) console.log(err);
+        if (!user) console.log("User not found");
+        if (user.mostKills < kills) {
+			Stats.updateOne({username: userName},{mostKills: kills},(err, user) => {});
+		}
+	})
+}
+
+//send the inital state
+wss.sendInitial = function(){
 	var msg = generateMsg();
 	record = msg;
+	var temp;
 	for(let ws of wss.clients){ 
 		if(Object.keys(stage.player).includes(ws.id)){
-			var temp = {...msg[0]};
-			if (temp.hasOwnProperty(ws.id)) {
-				temp.main = temp[ws.id];
-				delete temp[ws.id];
+			temp = JSON.parse(JSON.stringify(record));
+			
+			if (temp["players"].hasOwnProperty(ws.id)) {
+				temp["players"]["main"] = temp["players"][ws.id];
+				delete temp["players"][ws.id];
 			}
-			ws.send(JSON.stringify([temp,msg[1],msg[2],msg[3],msg[4],msg[5]])); 
+			ws.send(JSON.stringify(temp)); 
 		}else{
-			ws.send(JSON.stringify(["wait"]));
+			ws.send(JSON.stringify({"game":{"status":"wait"}}));
 		}
-	}
-}
+	};
+};
 
-function sendResult(){
+//send the final screen when the player dead or game end
+wss.sendResult = function(){
 	for(let ws of wss.clients){ 
 		if(Object.keys(stage.player).includes(ws.id)){
-			ws.send(JSON.stringify(["win"])); 
+			ws.send(JSON.stringify({"change": {"game":{"status":"win"}}}));
 		}else{
-			ws.send(JSON.stringify(["wait"])); 
+			ws.send(JSON.stringify({"change": {"game":{"status":"wait"}}}));
 		}
 	}
-}
+};
 
+//Compare the lateset game info, only send the minimal changes of the game(based on the entire map) to each client
+//P.S. sry, we don't have enough time...didn't finish the part which send customers only the information of nearby actors. 
+wss.sendUpdate = function(){
+	var latest = generateMsg();
+	var remove = {"players":{}};
+	var add = {"players":{}};
+	var change = {"players":{}};
+
+	for(var key in latest["players"]) {
+		if(Object.keys(record["players"]).includes(key)){
+			if(latest["players"][key] != record["players"][key]){
+				change["players"][key] = latest["players"][key];
+			}
+		}else if(!Object.keys(record["players"]).includes(key)){
+			add["players"][key] = latest["players"][key];
+		}
+	}
+	for(var key in record["players"]) {
+		if(!Object.keys(latest["players"]).includes(key)){
+			remove["players"][key] = key;
+		}
+	}
+	for(let key of Object.keys(latest).slice(1,5)){
+		add[key] = latest[key].filter(function(elem){
+			return !containDict(record[key],elem);
+		})
+		remove[key] = record[key].filter(function(elem){
+			return !containDict(latest[key],elem);
+		})
+		
+	}
+	if(record["game"]!=latest["game"] ){
+		change["game"] = latest["game"];
+	}
+	//send the minimal change each client with small modifications
+	var temp;
+	for(let ws of wss.clients){ 
+		if(Object.keys(stage.player).includes(ws.id)){
+			if (change["players"].hasOwnProperty(ws.id)){
+				//easiest way I find to deep copy a combined and complexed multi-level dictoinary.
+				temp =  JSON.parse(JSON.stringify(change));
+				temp["players"]["main"] = temp["players"][ws.id];
+				delete temp["players"][ws.id];
+				ws.send(JSON.stringify({"change": temp, "add": add, "remove": remove})); 
+			}else if(remove["players"].hasOwnProperty(ws.id)){
+				temp =  JSON.parse(JSON.stringify(remove));
+				temp["players"]["main"] = temp["players"][ws.id];
+				delete temp["players"][ws.id]; 
+				ws.send(JSON.stringify({"change": change, "add": add, "remove": temp})); 
+			}else if(add["players"].hasOwnProperty(ws.id)){
+				temp = JSON.parse(JSON.stringify(add));
+				temp["players"]["main"] = temp["players"][ws.id];
+				delete temp["players"][ws.id];
+				ws.send(JSON.stringify({"change": change, "add": temp, "remove": remove})); 
+			}
+		}else{
+			ws.send(JSON.stringify({"change": {"game":{"status":"wait"}}}));
+		}
+	}
+
+	//update the record with lastest info
+	record = latest;
+};
+
+//generate latest game information package
 function generateMsg(){
 	var obstacles =[];
 	var items = [];
@@ -400,7 +496,7 @@ function generateMsg(){
 	var ai= [];
 	var players = {};
 	var info = {};
-	info.alive = stage.alive;
+	info["status"] = stage.alive;
 	for(var i=0; i<stage.actors.length;i++){
 		if(stage.actors[i].isOb){
 			obstacles.push({colour: stage.actors[i].colour, 
@@ -443,18 +539,18 @@ function generateMsg(){
 			ammo: stage.player[key].ammo
 		};
 	}
-	return [players,obstacles,items,bullets,ai,info];
+	return {"players":players,"obstacles":obstacles,"items":items,"bullets":bullets,"ai":ai,"game": info};
 }
 
-function sendNew(){
-	var latest = generateMsg();
-	//console.log( Object.values(latest));
-	var change = [];
-	var obstacles =[];
-	var items = [];
-	var bullets = [];
-	var ai= [];
-	var players = {};
-	var info = {};	
-	//console.log(change);
+//helper used to compare if a array of dictionaries contains a speific dictionary
+//have to do it in this way beacause "===" or ".includes(_)" would return false 
+//even if two dictionary contains same keys/values
+function containDict (list,dict){
+	var isHere = false;
+	for (var i in list){
+		if(JSON.stringify(list[i]) == JSON.stringify(dict) ){
+			isHere = true;
+		}
+	}
+	return isHere;
 }

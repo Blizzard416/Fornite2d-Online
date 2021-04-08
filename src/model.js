@@ -149,7 +149,7 @@ class Stage {
 				//check is it the right time to fire a shoot
 				if(this.actors[i].counter%this.rate == 0){
 					var angle =  Math.atan2(this.actors[i].pointer.y , this.actors[i].pointer.x);
-					var velocity = new Pair(this.actors[i].velocity.x/2 + Math.cos(angle)*15, this.actors[i].velocity.y/2 + Math.sin(angle)*15);
+					var velocity = new Pair(this.actors[i].velocity.x/2 + Math.cos(angle)*20, this.actors[i].velocity.y/2 + Math.sin(angle)*20);
 					var colour= 'rgba(0,0,0,1)';
 					var position = new Pair(this.actors[i].x,this.actors[i].y);
 					var b = new Bullet(this, position, velocity, colour, 2.5, false, true, false, this.actors[i]);

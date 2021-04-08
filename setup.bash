@@ -13,3 +13,4 @@ npm install bcryptjs
 
 npm install axios
 
+npm install

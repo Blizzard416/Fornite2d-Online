@@ -20,7 +20,7 @@ class StartButton extends React.Component {
                 color="primary"
                 onClick={this.props.clickHandler}
             >
-            Start a New Game!
+            Connect to the Game!
             </Button>
 		);
 	}

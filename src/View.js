@@ -1,26 +1,40 @@
+//class for our little painter
 class View{
 	constructor(canvas){
-		this.record = {};
 		this.canvas = canvas;
+		this.record = {};
 	}
 
+	//update the canvas based on the message given
 	updateView(msg){
-		var message = JSON.parse(msg);
-		if(message[0] == "win"){
+		//check if it is a update package or full initial state package
+		if(Object.keys(msg).includes("change")){
+			this.getUpdate(msg);
+		}else{
+			this.record = msg;
+		}
+		var message = this.record;
+	
+		//if the game end, the player win/lose, or just waiting to join
+		if(message["game"]["status"] == "win"){
 			this.drawWin();
 			return;
-		}else if(message[0] == "wait"){
+		}else if(message["game"]["status"] == "wait"){
 			this.drawWait();
+			return;
+		}
+		if(!message.hasOwnProperty("players") || !message["players"].hasOwnProperty("main")){
 			return;
 		}
 		
 		var context = this.canvas.getContext('2d');
 		context.clearRect(0, 0, 800, 800);
-			//camera view
+		
+		//camera view
 		context.save();
 		context.transform(1.5,0,0,1.5,0,0);
 	
-		context.translate(800/3-message[0].main.x,800/3-message[0].main.y);
+		context.translate(800/3-message["players"]["main"].x,800/3-message["players"]["main"].y);
 		context.lineWidth = 2;
 		context.strokeStyle="#000000";
 		context.strokeRect(0,0,800,800);
@@ -36,17 +50,18 @@ class View{
 		context.save();
 		context.fillStyle="#000000";
 		context.font = "30px Georgia";
-		context.fillText("HP:" + message[0].main.health, 0, 25);
-		context.fillText("Kills:" + message[0].main.kills, 0, 55);
-		context.fillText(message[5].alive + " Players left", 0, 85);
-		context.fillText("Ammo:" + message[0].main.ammo, 0, 115);
+		context.fillText("HP:" + message["players"]["main"].health, 0, 25);
+		context.fillText("Kills:" + message["players"]["main"].kills, 0, 55);
+		context.fillText(message["game"]["status"] + " Players left", 0, 85);
+		context.fillText("Ammo:" + message["players"]["main"].ammo, 0, 115);
 		context.restore();
 	}
 	
+	//Draw obstacles
 	drawOb(message){
 		var context = this.canvas.getContext('2d');
-		for(var i=0;i<message[1].length;i++){
-			var temp = message[1][i];
+		for(var i=0;i<message["obstacles"].length;i++){
+			var temp = message["obstacles"][i];
 			context.fillStyle = temp.colour;
 			   context.fillRect(temp.x, temp.y, temp.length, temp.length);  
 			if(temp.health != temp.full){
@@ -61,10 +76,11 @@ class View{
 		}
 	}
 	
+	//Draw items
 	drawItem(message){
 		var context = this.canvas.getContext('2d');
-		for(var i=0;i<message[2].length;i++){
-			var temp = message[2][i];
+		for(var i=0;i<message["items"].length;i++){
+			var temp = message["items"][i];
 			context.save();
 			context.fillStyle = temp.colour;
 			   context.fillRect(temp.x, temp.y, temp.length, temp.length);
@@ -75,10 +91,11 @@ class View{
 		}
 	}
 	
+	//Draw bullets
 	drawBullet(message){
 		var context = this.canvas.getContext('2d');
-		for(var i=0;i<message[3].length;i++){
-			var temp = message[3][i];
+		for(var i=0;i<message["bullets"].length;i++){
+			var temp = message["bullets"][i];
 			context.save();
 			context.fillStyle = temp.colour;
 			context.beginPath(); 
@@ -88,10 +105,11 @@ class View{
 		}
 	}
 	
+	//Draw AIs
 	drawAi(message){
 		var context = this.canvas.getContext('2d');
-		for(var i=0;i<message[4].length;i++){
-			var temp = message[4][i];
+		for(var i=0;i<message["ai"].length;i++){
+			var temp = message["ai"][i];
 			context.fillStyle = temp.colour;
 			context.beginPath(); 
 			context.arc(temp.x, temp.y, temp.radius, 0, 2 * Math.PI, false); 
@@ -117,10 +135,11 @@ class View{
 		}
 	}
 	
+	//Draw players
 	drawPlayer(message){
 		var context = this.canvas.getContext('2d');
-		for(var key in message[0]){
-			var temp = message[0][key];
+		for(var key in message["players"]){
+			var temp = message["players"][key];
 			context.fillStyle = temp.colour;
 			context.beginPath(); 
 			context.arc(temp.x, temp.y, temp.radius, 0, 2 * Math.PI, false); 
@@ -146,7 +165,6 @@ class View{
 		}
 	}
 	
-	
 	//Draw game win screen
 	drawWin(){
 		var context = this.canvas.getContext('2d');
@@ -165,6 +183,7 @@ class View{
 		context.fillText("You are the f0rt9it32d Champoion!", 800/2 - 220, 800/2+60);
 		context.strokeText("You are the f0rt9it32d Champoion!", 800/2 - 220, 800/2+60);
 		context.restore();
+		this.record = {};
 	}
 	
 	//Draw game pause screen
@@ -185,7 +204,51 @@ class View{
 		context.fillText("Please wait for the next game", 800/2 - 200, 800/2+60);
 		context.strokeText("Please wait for the next game", 800/2 - 200, 800/2+60);
 		context.restore();
+		this.record = {};
+	}
+
+	//parse the update package, i.e., apply the \_delta(world) to the latest record 
+	getUpdate(msg){
+		for(var key in msg["change"]){
+				if(key == "players"){
+						for(var key2 in msg["change"]["players"]){
+								this.record["players"][key2] = msg["change"]["players"][key2];
+						}
+				}else{
+						this.record["game"] = msg["change"]["game"];
+				} 
+		}
+		for(var key in msg["add"]){
+				if(key == "players"){
+						for(var key2 in msg["add"]["players"]){
+								this.record["players"][key2] = msg["add"]["players"][key2];
+						}
+				}else{
+						for(var i in msg["add"][key]){
+								this.record[key].push(msg["add"][key][i]);
+						}
+				} 
+		}
+		for(var key in msg["remove"]){
+				if(key == "players"){
+						for(var key2 in msg["remove"]["players"]){
+								delete this.record["players"][key2];
+						}
+				}else{
+						for(var i in msg["remove"][key]){
+								this.record[key] = this.record[key].filter(elem => !this.compareDict(elem, msg["remove"][key][i]));
+						}
+				} 
+		}
+	
+	}
+
+	//helper to compare a dictionary in same form
+	//have to do it in this way because js dont have a compare function for [object]
+	compareDict(dict1,dict2){
+		return JSON.stringify(dict1) == JSON.stringify(dict2)
 	}
 }
+
 
 export default View;
