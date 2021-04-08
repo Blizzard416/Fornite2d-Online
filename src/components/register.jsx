@@ -239,7 +239,6 @@ class Register extends React.Component {
                     alert(error.message);
                     err = error.message
                 }
-                alert(error.response.data.error);
                 this.setState((props) => {
                     return {error: err};
                 });

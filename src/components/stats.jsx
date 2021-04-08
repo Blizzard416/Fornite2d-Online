@@ -97,7 +97,6 @@ class Stats extends React.Component {
                 alert(error.message);
                 err = error.message
             }
-            alert(error.response.data.error);
             this.setState((props) => {
                 return {error: err};
             });
@@ -124,7 +123,6 @@ class Stats extends React.Component {
                 alert(error.message);
                 err = error.message
             }
-            alert(error.response.data.error);
             this.setState((props) => {
                 return {error: err};
             });
