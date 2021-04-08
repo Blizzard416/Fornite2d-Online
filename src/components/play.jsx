@@ -5,7 +5,8 @@ import Button from '@material-ui/core/Button';
 import axios from 'axios';
 import Grid from '@material-ui/core/Grid';
 
-class RestartButton extends React.Component {
+// Component for start game button
+class StartButton extends React.Component {
     constructor(props) {
 		super(props);
 	}
@@ -25,7 +26,9 @@ class RestartButton extends React.Component {
 	}
 }
 
+// Play page component to export
 class Play extends React.Component {
+    // Create state and bind the function
     constructor(props) {
 		super(props);
         this.state = { 
@@ -34,16 +37,20 @@ class Play extends React.Component {
         this.clickHandler = this.clickHandler.bind(this);
 	}
 
+    // Login button click event handler
     clickHandler(e) {
+        // Update state and connect to web socket
         this.setState({playing: true})
         connectSocket(this.refs.canvas, localStorage.getItem('user'));
     }
 
+    // Check Authorization before displaying pages
     componentDidMount() {
         this.setState({playing: false})
         axios.get('/api/auth/play', {headers: { "Authorization": "Basic " + btoa(localStorage.getItem('user') + ":" + localStorage.getItem('password')) }})
         .then((response) => {
         })
+        // Handle error message
         .catch((error) => {
             if (error.response) {
                 alert(error.response.data.error);
@@ -68,7 +75,7 @@ class Play extends React.Component {
                 >
                     <h2>Game</h2>
                     <Grid item xs={3}>
-                        <RestartButton playing={this.state.playing} clickHandler={this.clickHandler} />
+                        <StartButton playing={this.state.playing} clickHandler={this.clickHandler} />
                     </Grid>
                 </Grid>
                 <center>
@@ -79,4 +86,5 @@ class Play extends React.Component {
     }
 }
 
+// Export component
 export default Play;

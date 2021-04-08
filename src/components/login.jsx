@@ -7,12 +7,14 @@ import axios from 'axios';
 import {closeSocket} from '../controller'
 import Grid from '@material-ui/core/Grid';
 
+// Component for username input textField
 class UsernameInput extends React.Component {
     constructor(props) {
 		super(props);
 	}
 	render(props){
         var err = false;
+        // Highlight error
         if (this.props.error === "Missing username") err=true;
         return (
             <TextField 
@@ -28,12 +30,14 @@ class UsernameInput extends React.Component {
 	}
 }
 
+// Component for password input textField
 class PasswordInput extends React.Component {
     constructor(props) {
 		super(props);
 	}
 	render(props){
         var err = false;
+        // Highlight error
         if (this.props.error === "Missing password") err=true;
         return (
             <TextField 
@@ -50,6 +54,7 @@ class PasswordInput extends React.Component {
 	}
 }
 
+// Component for login button
 class LoginButton extends React.Component {
     constructor(props) {
 		super(props);
@@ -68,7 +73,9 @@ class LoginButton extends React.Component {
 	}
 }
 
+// Login component to export
 class Login extends React.Component {
+    // Create state and bind the function
     constructor(props) {
 		super(props);
 		this.state = { 
@@ -81,6 +88,7 @@ class Login extends React.Component {
 		this.changeHandler = this.changeHandler.bind(this);
 	}
     
+    // Disconnect the socket and remove the user loggedin status from the local storage
     componentDidMount() {
         closeSocket();
         localStorage.removeItem('login');
@@ -89,6 +97,7 @@ class Login extends React.Component {
         this.props.changeState(false, '', '');
     }
 
+    // Frontend validation on the textfield
     validation() {
         if (this.state.username === '') {
             this.setState({"error": 'Missing username'});
@@ -102,10 +111,14 @@ class Login extends React.Component {
         return true
     }
 
+    // Login button click event handler
     clickHandler(e) {
         e.preventDefault();
+        // Check validation
         if (this.validation()) {
+            // Send information to backend
             axios.post('/api/auth/login', {}, {headers: { "Authorization": "Basic " + btoa(this.state.username + ":" + this.state.password) }})
+            // Update user loggedin status to local storage and prepare to redirect
             .then((response) => {
                 localStorage.setItem('login', true);
                 localStorage.setItem('user', this.state.username);
@@ -115,6 +128,7 @@ class Login extends React.Component {
                     return {redirect: true};
                 });
             })
+            // Handle error message
             .catch((error) => {
                 var err;
                 if (error.response) {
@@ -135,6 +149,7 @@ class Login extends React.Component {
         }
     }
 
+    // Handle user input and update the state
     changeHandler(e) {
         var name = e.target.name;
         var value = e.target.value;
@@ -143,6 +158,7 @@ class Login extends React.Component {
     }
 
     render(){
+        // Redirect to play page
         if (this.state.redirect) {
             return <Redirect to='./play'/>;
         }
@@ -174,4 +190,5 @@ class Login extends React.Component {
     }
 }
 
+// Export component
 export default Login;

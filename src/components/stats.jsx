@@ -11,17 +11,20 @@ import Paper from '@material-ui/core/Paper';
 import {closeSocket} from '../controller'
 import Grid from '@material-ui/core/Grid';
 
+// Component for displaying leaderboard
 class LeaderBoard extends React.Component {
     constructor(props) {
 		super(props);
 	}
 
+    // Helper function to create row
     createRow(rank, username, kills) {
         return {rank, username, kills};
     }
 
     render() {
         const leader = this.props.leader;
+        // Reocrd leader stats to row 
         var row=[];
         for (var i=0; i < 10; i++) {
             if (i<leader.length) {
@@ -58,7 +61,9 @@ class LeaderBoard extends React.Component {
     }
 }
 
+// Stats component to export
 class Stats extends React.Component {
+    // Create state
     constructor(props) {
 		super(props);
         this.state = { 
@@ -68,14 +73,18 @@ class Stats extends React.Component {
 		}
 	}
 
+    // Retrieve user stats and leaderboard at the beginning
     componentDidMount = async () => {
         closeSocket();
+        // Send request to backend
         await axios.get('/api/auth/stats/'+localStorage.getItem('user'), {headers: { "Authorization": "Basic " + btoa(localStorage.getItem('user') + ":" + localStorage.getItem('password')) }})
+        // Update state
         .then((response) => {
             this.setState((props) => {
                 return {stats: response.data.stats};
             });
         })
+        // Handle error message
         .catch((error) => {
             var err;
             if (error.response) {
@@ -94,12 +103,15 @@ class Stats extends React.Component {
             });
         })
 
+        // Send leaderboard request to backend
         await axios.get('/api/leaderBoard')
+        // Update state
         .then((response) => {
             this.setState((props) => {
                 return {leader: response.data.res};
             });
         })
+        // Handle error message
         .catch((error) => {
             var err;
             if (error.response) {
@@ -117,10 +129,6 @@ class Stats extends React.Component {
                 return {error: err};
             });
         })
-    }
-
-    createRow(rank, username, kills) {
-        return {rank, username, kills};
     }
 
     render(){

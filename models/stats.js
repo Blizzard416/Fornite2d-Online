@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+// Schema to record user stats
 const StatsSchema = new Schema({
     username: {
         type: String,
@@ -13,5 +14,6 @@ const StatsSchema = new Schema({
     }
 });
 
+// Export schema
 const Stats = mongoose.model("stats", StatsSchema);
 module.exports = Stats;

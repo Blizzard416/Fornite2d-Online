@@ -6,6 +6,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 
+// Material ui style
 const useStyles =(theme) => ({
     root: {
         marginLeft: theme.spacing(1),
@@ -20,10 +21,11 @@ const useStyles =(theme) => ({
     }
 });
 
+// Navigation component to export
 class Navigation extends React.Component {
   constructor(props) {
 		super(props);
-	}
+    }
   render() {
         const {classes} = this.props; 
         return (
@@ -55,4 +57,5 @@ class Navigation extends React.Component {
     }
 }
 
+// Export component and apply style
 export default withStyles(useStyles)(Navigation);

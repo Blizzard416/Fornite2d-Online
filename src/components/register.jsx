@@ -12,12 +12,14 @@ import Grid from '@material-ui/core/Grid';
 
 const Validator = require("validator");
 
+// Component for username input textField
 class UsernameInput extends React.Component {
     constructor(props) {
 		super(props);
 	}
 	render(props){
         var err = false;
+        // Highlight error
         if (this.props.error === "Missing username" || this.props.error === "Username already exists") err=true;
         return (
             <TextField 
@@ -33,12 +35,14 @@ class UsernameInput extends React.Component {
 	}
 }
 
+// Component for password input textField
 class PasswordInput extends React.Component {
     constructor(props) {
 		super(props);
 	}
 	render(props){
         var err = false;
+        // Highlight error
         if (this.props.error === "Missing password" || this.props.error === "Passwords are not identical") err=true;
         return (
             <TextField 
@@ -55,12 +59,14 @@ class PasswordInput extends React.Component {
 	}
 }
 
+// Component for re-enter password input textField
 class RepasswordInput extends React.Component {
     constructor(props) {
 		super(props);
 	}
 	render(props){
         var err = false;
+        // Highlight error
         if (this.props.error === "Missing re-enter password" || this.props.error === "Passwords are not identical") err=true;
         return (
             <TextField 
@@ -77,6 +83,7 @@ class RepasswordInput extends React.Component {
 	}
 }
 
+// Component for selecting gender radio button
 class GenderRadio extends React.Component {
     constructor(props) {
 		super(props);
@@ -95,6 +102,7 @@ class GenderRadio extends React.Component {
     }
 }
 
+// Component for selecting country drop box
 class CountrySelect extends React.Component {
     constructor(props) {
 		super(props);
@@ -112,12 +120,14 @@ class CountrySelect extends React.Component {
     }
 }
 
+// Component for email input textField
 class EmailInput extends React.Component {
     constructor(props) {
 		super(props);
 	}
 	render(props){
         var err = false;
+        // Highlight error
         if (this.props.error === "Missing email" || this.props.error === "Invalid email format") err=true;
         return (
             <TextField 
@@ -134,6 +144,7 @@ class EmailInput extends React.Component {
 	}
 }
 
+// Component for register user button
 class RegisterButton extends React.Component {
     constructor(props) {
 		super(props);
@@ -153,6 +164,7 @@ class RegisterButton extends React.Component {
 }
 
 class Register extends React.Component {
+    // Create state and bind the function
     constructor(props) {
 		super(props);
 		this.state = { 
@@ -171,6 +183,7 @@ class Register extends React.Component {
         this.selectHandler = this.selectHandler.bind(this);
 	}
 
+    // Validation on all user input
     validation() {
         if (this.state.username === '') {
             this.setState({"error": 'Missing username'});
@@ -200,15 +213,20 @@ class Register extends React.Component {
         return true;
     }
 
+    // Record the user information to database
     clickHandler(e) {
         e.preventDefault();
+        // Check validation
         if (this.validation()) {
+            // Send request to backend
             axios.post('/api/register', this.state)
+            // Prepare to redirect
             .then((response) => {
                 this.setState((props) => {
                     return {redirect: true};
                 });
             })
+            // Handle error message
             .catch((error) => {
                 var err;
                 if (error.response) {
@@ -229,7 +247,7 @@ class Register extends React.Component {
         }
     }
 
-
+    // Handle user input and update the state
     changeHandler(e) {
         var name = e.target.name;
         var value = e.target.value;
@@ -239,12 +257,14 @@ class Register extends React.Component {
 		});
     }
 
+    // Handle radio button and update the state
     radioHandler(e) {
         this.setState((props) => {
             return {gender: e.target.value};
         });
     }
 
+    // Handle drop box and update the state
     selectHandler(e) {
         this.setState((props) => {
             return {country: e.target.value};
@@ -252,6 +272,7 @@ class Register extends React.Component {
     }
 
     render(){
+        // Redirect to login page
         if (this.state.redirect) return <Redirect to='../'/>;
         return(
             <Grid
@@ -288,4 +309,5 @@ class Register extends React.Component {
     }
 }
 
+// Export component
 export default Register;

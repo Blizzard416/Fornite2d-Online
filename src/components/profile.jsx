@@ -13,6 +13,7 @@ import Grid from '@material-ui/core/Grid';
 
 const Validator = require("validator");
 
+// Component for displaying username
 class UsernameCom extends React.Component {
     constructor(props) {
       super(props);
@@ -22,14 +23,16 @@ class UsernameCom extends React.Component {
         <span> Username: {localStorage.getItem('user')} </span>
       );
     }
-  }
+}
 
+// Component for password input textField
 class PasswordInput extends React.Component {
     constructor(props) {
 		super(props);
 	}
 	render(props){
         var err = false;
+        // Highlight error
         if (this.props.error === "Missing password" || this.props.error === "Passwords are not identical") err=true;
         return (
             <TextField 
@@ -47,12 +50,14 @@ class PasswordInput extends React.Component {
 	}
 }
 
+// Component for re-enter password input textField
 class RepasswordInput extends React.Component {
     constructor(props) {
 		super(props);
 	}
 	render(props){
         var err = false;
+        // Highlight error
         if (this.props.error === "Missing re-enter password" || this.props.error === "Passwords are not identical") err=true;
         return (
             <TextField 
@@ -70,6 +75,7 @@ class RepasswordInput extends React.Component {
 	}
 }
 
+// Component for selecting gender radio button
 class GenderRadio extends React.Component {
     constructor(props) {
 		super(props);
@@ -88,6 +94,7 @@ class GenderRadio extends React.Component {
     }
 }
 
+// Component for selecting country drop box
 class CountrySelect extends React.Component {
     constructor(props) {
 		super(props);
@@ -105,12 +112,14 @@ class CountrySelect extends React.Component {
     }
 }
 
+// Component for email input textField
 class EmailInput extends React.Component {
     constructor(props) {
 		super(props);
 	}
 	render(props){
         var err = false;
+        // Highlight error
         if (this.props.error === "Missing email" || this.props.error === "Invalid email format") err=true;
         return (
             <TextField 
@@ -128,6 +137,7 @@ class EmailInput extends React.Component {
 	}
 }
 
+// Component for update user information button
 class UpdateButton extends React.Component {
     constructor(props) {
 		super(props);
@@ -140,12 +150,13 @@ class UpdateButton extends React.Component {
                 color="primary"
                 onClick={this.props.updateHandler}
             >
-            Update
+                Update
             </Button>
 		);
 	}
 }
 
+// Component for delete user button
 class DeleteButton extends React.Component {
     constructor(props) {
 		super(props);
@@ -165,6 +176,7 @@ class DeleteButton extends React.Component {
 }
 
 class Profile extends React.Component {
+    // Create state and bind the function
     constructor(props) {
 		super(props);
         this.state = { 
@@ -183,18 +195,22 @@ class Profile extends React.Component {
         this.selectHandler = this.selectHandler.bind(this);
 	}
 
+    // Retrieve user information for pre-fill at the beginning
     componentDidMount = async () => {
         closeSocket();
         this.setState((props) => {
             return {password: localStorage.getItem('password'), repassword: localStorage.getItem('password')};
         });
         
+        // Send request to backend
         await axios.get('/api/auth/profile/'+localStorage.getItem('user'), {headers: { "Authorization": "Basic " + btoa(localStorage.getItem('user') + ":" + localStorage.getItem('password')) }})
+        // Update state
         .then((response) => {
             this.setState((props) => {
                 return {gender: response.data.gender, country: response.data.country, email: response.data.email};
             });
         })
+        // Handle error message
         .catch((error) => {
             var err;
             if (error.response) {
@@ -214,6 +230,7 @@ class Profile extends React.Component {
         })
     }
 
+    // Validation on all user input
     validation() {
         if (this.state.password === '') {
             this.setState({"error": 'Missing password'});
@@ -239,16 +256,21 @@ class Profile extends React.Component {
         return true;
     }
 
+    // Update the user information to database
     updateHandler(e) {
         e.preventDefault();
+        // Check validation
         if (this.validation()) {
+            // Send request to backend
             axios.put('/api/auth/profile/'+localStorage.getItem('user'), this.state, {headers: { "Authorization": "Basic " + btoa(localStorage.getItem('user') + ":" + localStorage.getItem('password')) }})
+            // Display user feedback
             .then((response) => {
                 alert(response.data.message);
                 this.setState((props) => {
                     return {error: ""};
                 });
             })
+            // Handle error message
             .catch((error) => {
                 var err;
                 if (error.response) {
@@ -269,25 +291,42 @@ class Profile extends React.Component {
         }
     }
 
+    // Delete user from the database
     deleteHandler(e) {
         e.preventDefault();
+        // Check validation
         if (this.validation()) {
+            // Send request to backend
             axios.delete('/api/auth/profile/'+localStorage.getItem('user'), {headers: { "Authorization": "Basic " + btoa(localStorage.getItem('user') + ":" + localStorage.getItem('password')) }})
+            // Display user feedback and prepare to redirect
             .then((response) => {
                 alert(response.data.message);
                 this.setState((props) => {
                     return {redirect: true};
                 });
             })
+            // Handle error message
             .catch((error) => {
+                var err;
+                if (error.response) {
+                    alert(error.response.data.error);
+                    err = error.response.data.error;
+                } else if (error.request) {
+                    alert(error.request);
+                    err = error.request
+                } else {
+                    alert(error.message);
+                    err = error.message
+                }
                 alert(error.response.data.error);
                 this.setState((props) => {
-                    return {error: error.response.data.error};
+                    return {error: err};
                 });
             })
         }
     }
 
+    // Handle user input and update the state
     changeHandler(e) {
         var name = e.target.name;
         var value = e.target.value;
@@ -297,12 +336,14 @@ class Profile extends React.Component {
 		});
     }
 
+    // Handle radio button and update the state
     radioHandler(e) {
         this.setState((props) => {
             return {gender: e.target.value};
         });
     }
 
+    // Handle drop box and update the state
     selectHandler(e) {
         this.setState((props) => {
             return {country: e.target.value};
@@ -310,6 +351,7 @@ class Profile extends React.Component {
     }
 
     render(){
+        // Redirect to login page
         if (this.state.redirect) {
             return <Redirect to='../'/>;
         }
@@ -348,4 +390,5 @@ class Profile extends React.Component {
     }
 }
 
+// Export component
 export default Profile;

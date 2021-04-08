@@ -24,8 +24,10 @@ var dict = {};
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// Handle rest uri for registering account and store it in the database
 app.post('/api/register', (req, res) => {
     console.log(req.body);
+	// Check if all the required inputs are in the request body
     if (Validator.isEmpty(req.body.username)) return res.status(400).json({"error":'Missing username'});
     if (Validator.isEmpty(req.body.password)) return res.status(400).json({"error":'Missing password'});
     if (Validator.isEmpty(req.body.repassword)) return res.status(400).json({"error":'Missing re-enter password'});
@@ -33,13 +35,18 @@ app.post('/api/register', (req, res) => {
     if (Validator.isEmpty(req.body.country)) return res.status(400).json({"error":'Missing contry'});
     if (Validator.isEmpty(req.body.email)) return res.status(400).json({"error":'Missing email'});
 
+	// Check if the password and confirm password are identical
     if (!Validator.equals(req.body.password, req.body.repassword)) return res.status(400).json({"error":'Passwords are not identical'});
+	// Check if the email address is valid
     if (!Validator.isEmail(req.body.email)) return res.status(400).json({"error":'Invalid email format'});
 
+	// Check if the user already exists
     User.findOne({username: req.body.username}).then(user => {
+		// Return error if user exists
         if (user) {
             return res.status(400).json({ "error": "Username already exists" });
         } else {
+			// Create new user
             const newUser = new User({
                 username: req.body.username,
                 password: req.body.password,
@@ -47,25 +54,32 @@ app.post('/api/register', (req, res) => {
                 country: req.body.country,
                 email: req.body.email
             });
+			// Hash password
             bcrypt.genSalt(10, (error, salt) => {
                 bcrypt.hash(newUser.password, salt, (error, hash) => {
                     newUser.password = hash;
+					// Save the new user to database
                     newUser
                         .save()
+						// Create new stats for user
                         .then(() => {
                             const initStats = new Stats({
                                 username: req.body.username,
                                 mostKills: 0
                             })
+							// Save new stats to database
                             initStats
                                 .save()
+								// Return success message
                                 .then(() => {
                                     return res.status(200).json({"message":"success"});
                                 })
+								// Return error message
                                 .catch(error => {
                                     return res.status(400).json({"error": "Stats not created"});
                                 });
                         })
+						// Return error message
                         .catch(error => {
                             return res.status(400).json({"error": "User not created"});
                         });
@@ -75,13 +89,16 @@ app.post('/api/register', (req, res) => {
     });
 });
 
+// Handle rest uri for getting the leaderBoard data from the database
 app.get('/api/leaderBoard', (req, res) => {
+	// Retrieve all user stats, sort it and return the leaderboard
     Stats.find({}).sort({mostKills: -1}).limit(10).exec(function(err, leader) {
         if (err) return res.status(404).json({"error":"LeaderBoard not found"});
         return res.status(200).json({"res": leader});
     });
 });
 
+// Authorization before accessing the game page
 app.use('/api/auth', (req, res, next) => {
 	// Check if credential exists in header
 	if (!req.headers.authorization) {
@@ -119,51 +136,70 @@ app.use('/api/auth', (req, res, next) => {
 	}
 });
 
+// Login after authentication
 app.post('/api/auth/login', (req, res) => {
     return res.status(200).json({"message":"authentication success"})
 });
 
+// Go to play page after authentication
 app.get('/api/auth/play', (req, res) => {
     return res.status(200).json({"message":"authentication success"})
 });
 
+// Go to instruction page after authentication
 app.get('/api/auth/instruction', (req, res) => {
     return res.status(200).json({"message":"authentication success"})
 });
 
+// Handle rest uri for getting the stats of a user from the database
 app.get('/api/auth/stats/:username', (req, res) => {
     var userName = req.params.username;
 
+	// Get the stats
     Stats.findOne({username: userName}, (err, stats) => {
+		// Return error
         if (err) return res.status(400).json({"error": "Stats retrieving failed"})
+		// Return stats not found error
         if (!stats) return res.status(404).json({"error": "Stats not found"})
 
+		// Return stats
         return res.status(200).json({"stats": stats.mostKills});
     })
 });
 
+// Handle rest uri for getting the information of a user from the database
 app.get('/api/auth/profile/:username', (req, res) => {
     var userName = req.params.username;
 
+	// Get the user information
     User.findOne({username: userName}, (err, user) => {
+		// Return error
         if (err) return res.status(400).json({"error": "Profile retrieving failed"})
+		// Return stats not found error
 		if (!user) return res.status(404).json({"error": "User profile not found"})
+
+		// Return stats
         return res.status(200).json({"gender": user.gender, "country": user.country, "email": user.email});
     })
 });
 
+// Handle rest uri for updating the information of a user to the database
 app.put('/api/auth/profile/:username', (req, res) => {
     var userName = req.params.username;
 
+	// Check if all the required inputs are in the request body
     if (Validator.isEmpty(req.body.password)) return res.status(400).json({"error":'Missing password'});
     if (Validator.isEmpty(req.body.repassword)) return res.status(400).json({"error":'Missing re-enter password'});
     if (Validator.isEmpty(req.body.gender)) return res.status(400).json({"error":'Missing gender'});
     if (Validator.isEmpty(req.body.country)) return res.status(400).json({"error":'Missing contry'});
     if (Validator.isEmpty(req.body.email)) return res.status(400).json({"error":'Missing email'});
 
+	// Check if the password and confirm password are identical
     if (!Validator.equals(req.body.password, req.body.repassword)) return res.status(400).json({"error":'Passwords are not identical'});
+	// Check if the email address is valid
     if (!Validator.isEmail(req.body.email)) return res.status(400).json({"error":'Invalid email format'});
     
+	// Create new update
     const update = {
         password: req.body.password,
         gender: req.body.gender,
@@ -171,31 +207,42 @@ app.put('/api/auth/profile/:username', (req, res) => {
         email: req.body.email
     };
     
+	// Hash the password
     bcrypt.genSalt(10, (error, salt) => {
         bcrypt.hash(update.password, salt, (error, hash) => {
             update.password = hash;
             console.log(update);
+			// Find the user if exists and update
             User.findOneAndUpdate({username: userName}, update, {new: true}, (err, check) => {
+				// Return error
                 if (err) return res.status(400).json({"error": "Update profile failed"});
 
+				// Check if update success
                 if (check.password != update.password || check.gender != update.gender ||
                     check.country != update.country || check.email != update.email)
                     return res.status(400).json({"error":'Update failed'});
-            
+				
+				// Return success
                 return res.status(200).json({"message":"Update success"});
             });
         })
     });
 });
 
+// Handle rest uri for deleting a user from the database
 app.delete('/api/auth/profile/:username', (req, res) => {
     var userName = req.params.username;
 
+	// Find the user if exists and delete it
     User.findOneAndDelete({username: userName}, (err, check) => {
+		// Return error
         if (err) return res.status(400).json({"error": "Delete user failed"});
+		// Find the user stats if exists and delete it
         Stats.findOneAndDelete({username: userName}, (err, check) => {
+			// Return error
             if (err) return res.status(400).json({"error": "Delete user stats failed"});
 
+			// Return success
             return res.status(200).json({"message":"Delete success"});
         });
     });
@@ -211,6 +258,7 @@ function updateScore(userName, kills){
 	})
 }
 
+// Setup a port
 const port = process.env.PORT || 8080;
 app.listen(port, ()=>console.log(`Server running on port ${port}`));
 

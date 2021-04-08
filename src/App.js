@@ -7,7 +7,9 @@ import Instruction from './components/instruction'
 import Stats from './components/stats'
 import Profile from './components/profile'
 
+// Main app component
 class App extends React.Component {
+  // Create state and bind the function
   constructor(props) {
 		super(props);
     this.state = { 
@@ -18,6 +20,7 @@ class App extends React.Component {
     this.changeState = this.changeState.bind(this);
 	}
 
+  // Set the state from the local storage at the beginning
   componentDidMount() {
     const login = localStorage.getItem('login') === 'true';
     const user = login ? localStorage.getItem('user') : '';
@@ -27,6 +30,7 @@ class App extends React.Component {
     });
   }
 
+  // Helper function pass to login to change state
   changeState(log, username, password) {
     this.setState((props) => {
       return {loggedin: log, username: username, password: password};
@@ -34,6 +38,7 @@ class App extends React.Component {
   }
 
   render() {
+    // Use route to redirect pages and check loggedin status before redirecting
     return (
       <BrowserRouter>
         <Switch>

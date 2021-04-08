@@ -4,16 +4,19 @@ import {closeSocket} from '../controller'
 import axios from 'axios';
 import Grid from '@material-ui/core/Grid';
 
+// Instruction component to export
 class Instruction extends React.Component {
     constructor(props) {
 		super(props);
 	}
 
+    // Check Authorization before displaying pages
     componentDidMount() {
         closeSocket();
         axios.get('/api/auth/instruction', {headers: { "Authorization": "Basic " + btoa(localStorage.getItem('user') + ":" + localStorage.getItem('password')) }})
         .then((response) => {
         })
+        // Handle error message
         .catch((error) => {
             if (error.response) {
                 alert(error.response.data.error);
@@ -59,4 +62,5 @@ class Instruction extends React.Component {
     }
 }
 
+// Export component
 export default Instruction;
