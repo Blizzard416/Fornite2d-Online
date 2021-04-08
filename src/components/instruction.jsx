@@ -1,6 +1,7 @@
 import React from 'react';
 import Navigation from './nav'
 import {closeSocket} from '../controller'
+import axios from 'axios';
 
 class Instruction extends React.Component {
     constructor(props) {
@@ -9,6 +10,12 @@ class Instruction extends React.Component {
 
     componentDidMount() {
         closeSocket();
+        axios.get('/api/auth/instruction', {headers: { "Authorization": "Basic " + btoa(localStorage.getItem('user') + ":" + localStorage.getItem('password')) }})
+        .then((response) => {
+        })
+        .catch((error) => {
+            alert(error.response.data.error);
+        })
     }
 
     render(){
