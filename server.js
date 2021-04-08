@@ -63,11 +63,11 @@ app.post('/api/register', (req, res) => {
                                     return res.status(200).json({"message":"success"});
                                 })
                                 .catch(error => {
-                                    return res.status(500).json({"error": error});
+                                    return res.status(400).json({"error": "Stats not created"});
                                 });
                         })
                         .catch(error => {
-                            return res.status(500).json({"error": error});
+                            return res.status(400).json({"error": "User not created"});
                         });
                 });
             });
@@ -77,7 +77,7 @@ app.post('/api/register', (req, res) => {
 
 app.get('/api/leaderBoard', (req, res) => {
     Stats.find({}).sort({mostKills: -1}).limit(10).exec(function(err, leader) {
-        if (err) return res.status(400).json({"error":err});
+        if (err) return res.status(404).json({"error":"LeaderBoard not found"});
         return res.status(200).json({"res": leader});
     });
 });
@@ -85,7 +85,7 @@ app.get('/api/leaderBoard', (req, res) => {
 app.use('/api/auth', (req, res, next) => {
 	// Check if credential exists in header
 	if (!req.headers.authorization) {
-		return res.status(403).json({ error: 'No credentials sent!' });
+		return res.status(400).json({ error: 'No credentials sent!' });
   	}
 	try {
 		var m = /^Basic\s+(.*)$/.exec(req.headers.authorization);
@@ -103,7 +103,7 @@ app.use('/api/auth', (req, res, next) => {
 		// Authorize the account
 		User.findOne({username: userName}).then(user => {
             if (!user) {
-                return res.status(404).json({ "error": "Not authorized" });
+                return res.status(404).json({ "error": "Username not found" });
             } else {
                 bcrypt.compare(password, user.password).then(match => {
                     if (match) {
@@ -135,7 +135,7 @@ app.get('/api/auth/stats/:username', (req, res) => {
     var userName = req.params.username;
 
     Stats.findOne({username: userName}, (err, stats) => {
-        if (err) return res.status(400).json({"error": err})
+        if (err) return res.status(400).json({"error": "Stats retrieving failed"})
         if (!stats) return res.status(404).json({"error": "Stats not found"})
 
         return res.status(200).json({"stats": stats.mostKills});
@@ -146,7 +146,8 @@ app.get('/api/auth/profile/:username', (req, res) => {
     var userName = req.params.username;
 
     User.findOne({username: userName}, (err, user) => {
-        if (err) return res.status(500).json({"error": err})
+        if (err) return res.status(400).json({"error": "Profile retrieving failed"})
+		if (!user) return res.status(404).json({"error": "User profile not found"})
         return res.status(200).json({"gender": user.gender, "country": user.country, "email": user.email});
     })
 });
@@ -175,11 +176,11 @@ app.put('/api/auth/profile/:username', (req, res) => {
             update.password = hash;
             console.log(update);
             User.findOneAndUpdate({username: userName}, update, {new: true}, (err, check) => {
-                if (err) return res.status(500).json({"error": err});
+                if (err) return res.status(400).json({"error": "Update profile failed"});
 
                 if (check.password != update.password || check.gender != update.gender ||
                     check.country != update.country || check.email != update.email)
-                    return res.status(500).json({"error":'Update failed'});
+                    return res.status(400).json({"error":'Update failed'});
             
                 return res.status(200).json({"message":"Update success"});
             });
@@ -191,9 +192,9 @@ app.delete('/api/auth/profile/:username', (req, res) => {
     var userName = req.params.username;
 
     User.findOneAndDelete({username: userName}, (err, check) => {
-        if (err) return res.status(500).json({"error": err});
+        if (err) return res.status(400).json({"error": "Delete user failed"});
         Stats.findOneAndDelete({username: userName}, (err, check) => {
-            if (err) return res.status(500).json({"error": err});
+            if (err) return res.status(400).json({"error": "Delete user stats failed"});
 
             return res.status(200).json({"message":"Delete success"});
         });

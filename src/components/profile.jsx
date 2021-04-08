@@ -9,6 +9,7 @@ import Select from '@material-ui/core/Select';
 import axios from 'axios';
 import {Redirect} from "react-router-dom";
 import {closeSocket} from '../controller'
+import Grid from '@material-ui/core/Grid';
 
 const Validator = require("validator");
 
@@ -195,9 +196,20 @@ class Profile extends React.Component {
             });
         })
         .catch((error) => {
+            var err;
+            if (error.response) {
+                alert(error.response.data.error);
+                err = error.response.data.error;
+            } else if (error.request) {
+                alert(error.request);
+                err = error.request
+            } else {
+                alert(error.message);
+                err = error.message
+            }
             alert(error.response.data.error);
             this.setState((props) => {
-                return {error: error.response.data.error};
+                return {error: err};
             });
         })
     }
@@ -238,9 +250,20 @@ class Profile extends React.Component {
                 });
             })
             .catch((error) => {
+                var err;
+                if (error.response) {
+                    alert(error.response.data.error);
+                    err = error.response.data.error;
+                } else if (error.request) {
+                    alert(error.request);
+                    err = error.request
+                } else {
+                    alert(error.message);
+                    err = error.message
+                }
                 alert(error.response.data.error);
                 this.setState((props) => {
-                    return {error: error.response.data.error};
+                    return {error: err};
                 });
             })
         }
@@ -293,22 +316,33 @@ class Profile extends React.Component {
         return(
             <div>
                 <Navigation/>
-                <h2>Profile</h2>
-                <UsernameCom/>
-                <br></br>
-                <PasswordInput old={this.state.password} error={this.state.error} changeHandler={this.changeHandler}/>
-                <br></br>
-                <RepasswordInput old={this.state.repassword} error={this.state.error} changeHandler={this.changeHandler}/>
-                <br></br>
-                <GenderRadio old={this.state.gender} radioHandler={this.radioHandler}/>
-                <br></br>
-                <CountrySelect old={this.state.country} selectHandler={this.selectHandler}/>
-                <br></br>
-                <EmailInput old={this.state.email} error={this.state.error} changeHandler={this.changeHandler}/>
-                <br></br>
-                <UpdateButton updateHandler={this.updateHandler}/>
-                <br></br>
-                <DeleteButton deleteHandler={this.deleteHandler}/>
+                <Grid
+                container
+                spacing={0}
+                direction="column"
+                alignItems="center"
+                style={{ minHeight: '100vh' }}
+                >
+                    <h2>Profile</h2>
+                    <Grid item xs={3}>
+                        <div>
+                            <UsernameCom/>
+                            <br></br>
+                            <PasswordInput old={this.state.password} error={this.state.error} changeHandler={this.changeHandler}/>
+                            <br></br>
+                            <RepasswordInput old={this.state.repassword} error={this.state.error} changeHandler={this.changeHandler}/>
+                            <br></br>
+                            <GenderRadio old={this.state.gender} radioHandler={this.radioHandler}/>
+                            <br></br>
+                            <CountrySelect old={this.state.country} selectHandler={this.selectHandler}/>
+                            <br></br>
+                            <EmailInput old={this.state.email} error={this.state.error} changeHandler={this.changeHandler}/>
+                            <br></br>
+                            <UpdateButton updateHandler={this.updateHandler}/>
+                            <DeleteButton deleteHandler={this.deleteHandler}/>
+                        </div>
+                    </Grid>
+                </Grid>
             </div>
         );
     }

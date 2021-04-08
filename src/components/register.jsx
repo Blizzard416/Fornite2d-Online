@@ -8,6 +8,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import {Redirect} from "react-router-dom";
 import axios from 'axios';
+import Grid from '@material-ui/core/Grid';
 
 const Validator = require("validator");
 
@@ -209,9 +210,20 @@ class Register extends React.Component {
                 });
             })
             .catch((error) => {
+                var err;
+                if (error.response) {
+                    alert(error.response.data.error);
+                    err = error.response.data.error;
+                } else if (error.request) {
+                    alert(error.request);
+                    err = error.request
+                } else {
+                    alert(error.message);
+                    err = error.message
+                }
                 alert(error.response.data.error);
                 this.setState((props) => {
-                    return {error: error.response.data.error};
+                    return {error: err};
                 });
             })
         }
@@ -242,26 +254,36 @@ class Register extends React.Component {
     render(){
         if (this.state.redirect) return <Redirect to='../'/>;
         return(
-            <div style={{ display: 'block'}}>
+            <Grid
+                container
+                spacing={0}
+                direction="column"
+                alignItems="center"
+                style={{ minHeight: '100vh' }}
+            >
                 <h2>Register</h2>
-                <UsernameInput error={this.state.error} changeHandler={this.changeHandler}/>
-                <br></br>
-                <PasswordInput error={this.state.error} changeHandler={this.changeHandler}/>
-                <br></br>
-                <RepasswordInput error={this.state.error} changeHandler={this.changeHandler}/>
-                <br></br>
-                <GenderRadio radioHandler={this.radioHandler}/>
-                <br></br>
-                <CountrySelect selectHandler={this.selectHandler}/>
-                <br></br>
-                <EmailInput error={this.state.error} changeHandler={this.changeHandler}/>
-                <br></br>
-                <RegisterButton clickHandler={this.clickHandler}/>
-                <br></br>
-                <Link to="../">
-                    Back
-                </Link>
-            </div>
+                <Grid item xs={3}>
+                    <div style={{ display: 'block'}}>
+                        <UsernameInput error={this.state.error} changeHandler={this.changeHandler}/>
+                        <br></br>
+                        <PasswordInput error={this.state.error} changeHandler={this.changeHandler}/>
+                        <br></br>
+                        <RepasswordInput error={this.state.error} changeHandler={this.changeHandler}/>
+                        <br></br>
+                        <GenderRadio radioHandler={this.radioHandler}/>
+                        <br></br>
+                        <CountrySelect selectHandler={this.selectHandler}/>
+                        <br></br>
+                        <EmailInput error={this.state.error} changeHandler={this.changeHandler}/>
+                        <br></br>
+                        <RegisterButton clickHandler={this.clickHandler}/>
+                        <br></br>
+                        <Link to="../">
+                            Back
+                        </Link>
+                    </div>
+                </Grid>
+            </Grid>
         );
     }
 }

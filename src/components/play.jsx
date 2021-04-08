@@ -3,6 +3,7 @@ import Navigation from './nav'
 import {connectSocket} from '../controller'
 import Button from '@material-ui/core/Button';
 import axios from 'axios';
+import Grid from '@material-ui/core/Grid';
 
 class RestartButton extends React.Component {
     constructor(props) {
@@ -11,6 +12,7 @@ class RestartButton extends React.Component {
 	render(props){
 		return (
             <Button
+                className="Button"
                 disabled={this.props.playing}
                 type="submit"
                 variant="contained"
@@ -43,7 +45,13 @@ class Play extends React.Component {
         .then((response) => {
         })
         .catch((error) => {
-            alert(error.response.data.error);
+            if (error.response) {
+                alert(error.response.data.error);
+            } else if (error.request) {
+                alert(error.request);
+            } else {
+                alert(error.message);
+            }
         })
     }
 
@@ -51,12 +59,21 @@ class Play extends React.Component {
         return(
             <div>
                 <Navigation/>
-                <h2>Game</h2>
+                <Grid
+                container
+                spacing={0}
+                direction="column"
+                alignItems="center"
+                style={{ minHeight: '15vh' }}
+                >
+                    <h2>Game</h2>
+                    <Grid item xs={3}>
+                        <RestartButton playing={this.state.playing} clickHandler={this.clickHandler} />
+                    </Grid>
+                </Grid>
                 <center>
-                    <canvas ref="canvas" width={800} height={800}/>
+                    <canvas ref="canvas" width={800} height={800} style={{border:"1px solid black"}}/>
                 </center>
-                <br></br>
-                <RestartButton playing={this.state.playing} clickHandler={this.clickHandler}/>
             </div>
         );
     }

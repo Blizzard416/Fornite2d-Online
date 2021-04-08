@@ -8,9 +8,17 @@ import Button from '@material-ui/core/Button';
 
 const useStyles =(theme) => ({
     root: {
-        marginLeft: theme.spacing(5),
+        marginLeft: theme.spacing(1),
+        flexGrow: 1
     },
-  });
+    title: {
+        flexGrow: 1
+    },
+    link: {
+        color: 'white',
+        textDecoration: "none"
+    }
+});
 
 class Navigation extends React.Component {
   constructor(props) {
@@ -19,28 +27,30 @@ class Navigation extends React.Component {
   render() {
         const {classes} = this.props; 
         return (
-          <AppBar position="static" style={{ background: 'red' }}>
-            <Toolbar >
-              <Typography variant="h6" >
-                f0rt9it32d
-              </Typography>
-              <Link to="./play">
-                  <Button className={classes.root}>Play</Button>
-              </Link>
-              <Link to="./instruction">
-                  <Button className={classes.root} color="inherit">Instruction</Button>
-              </Link>
-              <Link to="./stats">
-                  <Button className={classes.root} color="inherit">Stats</Button>
-              </Link>
-              <Link to="./profile">
-                  <Button className={classes.root} color="inherit">Profile</Button>
-              </Link>
-              <Link to="../">
-                  <Button className={classes.root} color="inherit">Logout</Button>
-              </Link>
-            </Toolbar>
-          </AppBar>
+          <div className={classes.root}>
+              <AppBar position="static" style={{ background: 'red' }}>
+                <Toolbar >
+                  <Typography variant="h6" className={classes.title}>
+                    f0rt9it32d
+                  </Typography>
+                  <Link to="./play" className={classes.link}>
+                      <Button className={classes.button}>Play</Button>
+                  </Link>
+                  <Link to="./instruction" className={classes.link}>
+                      <Button className={classes.button} color="inherit">Instruction</Button>
+                  </Link>
+                  <Link to="./stats" className={classes.link}>
+                      <Button className={classes.button} color="inherit">Stats</Button>
+                  </Link>
+                  <Link to="./profile" className={classes.link}>
+                      <Button className={classes.button} color="inherit">Profile</Button>
+                  </Link>
+                  <Link to="../" className={classes.link}>
+                      <Button className={classes.button} color="inherit">Logout</Button>
+                  </Link>
+                </Toolbar>
+              </AppBar>
+          </div>
           );
     }
 }

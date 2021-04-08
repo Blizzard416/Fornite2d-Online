@@ -5,6 +5,7 @@ import {Link} from 'react-router-dom';
 import {Redirect} from "react-router-dom";
 import axios from 'axios';
 import {closeSocket} from '../controller'
+import Grid from '@material-ui/core/Grid';
 
 class UsernameInput extends React.Component {
     constructor(props) {
@@ -115,9 +116,20 @@ class Login extends React.Component {
                 });
             })
             .catch((error) => {
-                alert(error.response);
+                var err;
+                if (error.response) {
+                    alert(error.response.data.error);
+                    err = error.response.data.error;
+                } else if (error.request) {
+                    alert(error.request);
+                    err = error.request
+                } else {
+                    alert(error.message);
+                    err = error.message
+                }
+                alert(error.response.data.error);
                 this.setState((props) => {
-                    return {error: error.response};
+                    return {error: err};
                 });
             })
         }
@@ -135,19 +147,29 @@ class Login extends React.Component {
             return <Redirect to='./play'/>;
         }
         return(
-            <div>
+            <Grid
+                container
+                spacing={0}
+                direction="column"
+                alignItems="center"
+                style={{ minHeight: '100vh' }}
+            >
                 <h1>f0rt9it32d</h1>
-                <h2>Login</h2>
-                <UsernameInput error={this.state.error} changeHandler={this.changeHandler}/>
-                <br></br>
-                <PasswordInput error={this.state.error} changeHandler={this.changeHandler}/>
-                <br></br>
-                <LoginButton clickHandler={this.clickHandler}/>
-                <br></br>
-                <Link to="./register">
-                    Register
-                </Link>
-            </div>
+                <Grid item xs={3}>
+                    <div>
+                        <h2>Login</h2>
+                        <UsernameInput error={this.state.error} changeHandler={this.changeHandler}/>
+                        <br></br>
+                        <PasswordInput error={this.state.error} changeHandler={this.changeHandler}/>
+                        <br></br>
+                        <LoginButton clickHandler={this.clickHandler}/>
+                        <br></br>
+                        <Link to="./register">
+                            Register
+                        </Link>
+                    </div>
+                </Grid>
+            </Grid>
         );
     }
 }
